@@ -274,9 +274,7 @@ impl Git {
     /// Get the user-facing status of a file.
     /// We check the statuses directly applying to a file, and for the ignored
     /// status we check if any of its parents directories is ignored by git.
-    fn file_status(&self, file: &Path) -> f::Git {
-        let path = reorient(file);
-
+    fn file_status(&self, path: &Path) -> f::Git {
         let s = self.statuses.iter()
             .filter(|p| if p.1 == git2::Status::IGNORED {
                 path.starts_with(&p.0)
@@ -295,14 +293,12 @@ impl Git {
     /// modified if any file under it has the status modified), except for
     /// ignored status which applies to files under (for example, a directory
     /// is considered ignored if one of its parent directories is ignored).
-    fn dir_status(&self, dir: &Path) -> f::Git {
-        let path = reorient(dir);
-
+    fn dir_status(&self, path: &Path) -> f::Git {
         let s = self.statuses.iter()
             .filter(|p| if p.1 == git2::Status::IGNORED {
                 path.starts_with(&p.0)
             } else {
-                p.0.starts_with(&path)
+                p.0.starts_with(path)
             })
             .fold(git2::Status::empty(), |a, b| a | b.1);
 
@@ -310,32 +306,6 @@ impl Git {
         let unstaged = working_tree_status(s);
         f::Git { staged, unstaged }
     }
-}
-
-
-/// Converts a path to an absolute path based on the current directory.
-/// Paths need to be absolute for them to be compared properly, otherwise
-/// you’d ask a repo about “./README.md” but it only knows about
-/// “/vagrant/README.md”, prefixed by the workdir.
-#[cfg(unix)]
-fn reorient(path: &Path) -> PathBuf {
-    use std::env::current_dir;
-
-    // TODO: I’m not 100% on this func tbh
-    let path = match current_dir() {
-        Err(_)   => Path::new(".").join(path),
-        Ok(dir)  => dir.join(path),
-    };
-
-    path.canonicalize().unwrap_or(path)
-}
-
-#[cfg(windows)]
-fn reorient(path: &Path) -> PathBuf {
-    let unc_path = path.canonicalize().unwrap_or_else(|_| path.to_path_buf());
-    // On Windows UNC path is returned. We need to strip the prefix for it to work.
-    let normal_path = unc_path.as_os_str().to_str().unwrap().trim_start_matches("\\\\?\\");
-    PathBuf::from(normal_path)
 }
 
 /// The character to display if the file has been modified, but not staged.
@@ -388,12 +358,9 @@ fn current_branch(repo: &git2::Repository) -> Option<String>{
 }
 
 impl f::SubdirGitRepo{
-    pub fn from_path(dir : &Path, status : bool) -> Self{
-
-        let path = &reorient(dir);
+    pub fn from_path(path: &Path, status: bool) -> Self{
         let g = git2::Repository::open(path);
-        if let Ok(repo) = g{
-
+        if let Ok(repo) = g {
             let branch = current_branch(&repo);
             if !status{
                 return Self{status : f::SubdirGitRepoStatus::GitUnknown, branch};

@@ -85,7 +85,7 @@ pub struct File<'dir> {
     extended_attributes: OnceLock<Vec<Attribute>>,
 
     /// The absolute value of this path, used to look up mount points.
-    absolute_path: OnceLock<Option<PathBuf>>,
+    canonical_path: OnceLock<Option<PathBuf>>,
 }
 
 impl<'dir> File<'dir> {
@@ -103,7 +103,7 @@ impl<'dir> File<'dir> {
         let extended_attributes = OnceLock::new();
         let absolute_path = OnceLock::new();
 
-        Ok(File { name, ext, path, metadata, parent_dir, is_all_all, deref_links, extended_attributes, absolute_path })
+        Ok(File { name, ext, path, metadata, parent_dir, is_all_all, deref_links, extended_attributes, canonical_path: absolute_path })
     }
 
     pub fn new_aa_current(parent_dir: &'dir Dir) -> io::Result<File<'dir>> {
@@ -117,7 +117,7 @@ impl<'dir> File<'dir> {
         let extended_attributes = OnceLock::new();
         let absolute_path = OnceLock::new();
 
-        Ok(File { path, parent_dir, metadata, ext, name: ".".into(), is_all_all, deref_links: false, extended_attributes, absolute_path })
+        Ok(File { path, parent_dir, metadata, ext, name: ".".into(), is_all_all, deref_links: false, extended_attributes, canonical_path: absolute_path })
     }
 
     pub fn new_aa_parent(path: PathBuf, parent_dir: &'dir Dir) -> io::Result<File<'dir>> {
@@ -130,7 +130,7 @@ impl<'dir> File<'dir> {
         let extended_attributes = OnceLock::new();
         let absolute_path = OnceLock::new();
 
-        Ok(File { path, parent_dir, metadata, ext, name: "..".into(), is_all_all, deref_links: false, extended_attributes, absolute_path })
+        Ok(File { path, parent_dir, metadata, ext, name: "..".into(), is_all_all, deref_links: false, extended_attributes, canonical_path: absolute_path })
     }
 
     /// A file’s name is derived from its string. This needs to handle directories
@@ -259,42 +259,30 @@ impl<'dir> File<'dir> {
         self.metadata.file_type().is_socket()
     }
 
-    /// Determine the full path resolving all symbolic links on demand.
-    pub fn absolute_path(&self) -> Option<&PathBuf> {
-        self.absolute_path.get_or_init(|| std::fs::canonicalize(&self.path).ok()).as_ref()
+    /// Determine the absolute path without resolving symlinks.
+    pub fn absolute_path(&self) -> PathBuf {
+        static CWD: OnceLock<PathBuf> = OnceLock::new();
+        CWD.get_or_init(|| std::env::current_dir().unwrap()).with_file_name(&self.path)
+    }
+
+    /// Determine the absolute path and resolve symlinks.
+    pub fn canonical_path(&self) -> Option<&PathBuf> {
+        self.canonical_path.get_or_init(|| std::fs::canonicalize(&self.path).ok()).as_ref()
     }
 
     /// Whether this file is a mount point
     pub fn is_mount_point(&self) -> bool {
         cfg!(any(target_os = "linux", target_os = "macos")) &&
             self.is_directory() &&
-            self.absolute_path().is_some_and(|p| all_mounts().contains_key(p))
+            self.canonical_path().is_some_and(|p| all_mounts().contains_key(p))
     }
 
     /// The filesystem device and type for a mount point
     pub fn mount_point_info(&self) -> Option<&MountedFs> {
         if cfg!(any(target_os = "linux",target_os = "macos")) {
-            return self.absolute_path().and_then(|p| all_mounts().get(p));
+            return self.canonical_path().and_then(|p| all_mounts().get(p));
         }
         None
-    }
-
-    /// Re-prefixes the path pointed to by this file, if it’s a symlink, to
-    /// make it an absolute path that can be accessed from whichever
-    /// directory exa is being run from.
-    fn reorient_target_path(&self, path: &Path) -> PathBuf {
-        if path.is_absolute() {
-            path.to_path_buf()
-        }
-        else if let Some(dir) = self.parent_dir {
-            dir.join(path)
-        }
-        else if let Some(parent) = self.path.parent() {
-            parent.join(path)
-        }
-        else {
-            self.path.join(path)
-        }
     }
 
     /// Again assuming this file is a symlink, follows that link and returns
@@ -319,7 +307,7 @@ impl<'dir> File<'dir> {
             Err(e)  => return FileTarget::Err(e),
         };
 
-        let absolute_path = self.reorient_target_path(&path);
+        let absolute_path = self.path.with_file_name(&path);
 
         // Use plain `metadata` instead of `symlink_metadata` - we *want* to
         // follow links.
@@ -338,7 +326,7 @@ impl<'dir> File<'dir> {
                     is_all_all: false,
                     deref_links: self.deref_links,
                     extended_attributes,
-                    absolute_path: absolute_path_cell,
+                    canonical_path: absolute_path_cell,
                 };
                 FileTarget::Ok(Box::new(file))
             }

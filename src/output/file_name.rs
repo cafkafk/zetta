@@ -350,7 +350,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
 
         let mut display_hyperlink = false;
         if self.options.embed_hyperlinks == EmbedHyperlinks::On {
-            if let Some(abs_path) = self.file.absolute_path().and_then(|p| p.as_os_str().to_str()) {
+            if let Some(abs_path) = self.file.canonical_path().and_then(|p| p.as_os_str().to_str()) {
                 #[cfg(not(target_os = "windows"))]
                 bits.insert(0, ANSIString::from(format!(
                     "{}file://{}{}{}",

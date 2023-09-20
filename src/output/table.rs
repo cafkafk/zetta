@@ -518,7 +518,7 @@ impl<'a> Table<'a> {
         debug!("Getting Git status for file {:?}", file.path);
 
         self.git
-            .map(|g| g.get(&file.path, file.is_directory()))
+            .map(|g| g.get(&file.absolute_path(), file.is_directory()))
             .unwrap_or_default()
     }
 
