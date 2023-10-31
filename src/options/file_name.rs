@@ -105,28 +105,28 @@ impl ShowIcons {
 
 impl QuoteStyle {
     pub fn deduce(matches: &MatchedFlags<'_>) -> Result<Self, OptionsError> {
-        if let Ok(env) = std::env::var("EZA_QUOTE_STYLE") {
-            match env.as_str() {
-                "always" => return Ok(Self::Always),
-                "never" => return Ok(Self::Never),
-                &_ => return Ok(Self::Auto),
-            };
-        } else if matches.get(&flags::QUOTES)?.is_some() {
-        // prioritize the command line flag over the environment variable 
-            let word = matches.get(&flags::QUOTES)?.unwrap();
+        let env = std::env::var("EZA_QUOTING_STYLE");
+        let env = env.unwrap_or_else(|_| "auto".to_string());
+        let env = match env.to_ascii_lowercase().as_str() {
+            "always" => Self::Always,
+            "never" => Self::Never,
+            _ => Self::Auto,
+        };
+        if matches.get(&flags::QUOTES)?.is_none() {
+            Ok(env)
+        } else if let Some(word) = matches.get(&flags::QUOTES)? {
             match word.to_str() {
-                Some("always") => return Ok(Self::Always),
-                Some("never") => return Ok(Self::Never),
-                Some("auto") => return Ok(Self::Auto),
-                None => return Err(OptionsError::BadArgument(&flags::QUOTES, word.into())),
-                _ => return Err(OptionsError::BadArgument(&flags::QUOTES, word.into())),
+                Some("always") => Ok(Self::Always),
+                Some("never") => Ok(Self::Never),
+                Some("auto" | "automatic") => Ok(Self::Auto),
+                Some(arg) => Err(OptionsError::BadArgument(&flags::QUOTES, arg.into())),
+                _ => Err(OptionsError::BadArgument(&flags::QUOTES, "auto".into())),
             }
         } else {
-            return Ok(Self::Auto);
-        };
+            Ok(env)
+        }
     }
 }
-
 
 impl EmbedHyperlinks {
     fn deduce(matches: &MatchedFlags<'_>) -> Result<Self, OptionsError> {
