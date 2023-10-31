@@ -137,11 +137,11 @@ pub enum Absolute {
 #[derive(PartialEq, Debug, Copy, Clone)]
 pub enum QuoteStyle {
     /// Don't ever quote file names.
-    NoQuotes,
-
-    /// Use single quotes for file names that contain spaces and no single quotes
-    /// Use double quotes for file names that contain single quotes.
-    QuoteSpaces,
+    Never,
+    /// Quote file names that contain spaces
+    Auto,
+    /// Always quote file names.
+    Always,
 }
 
 /// A **file name** holds all the information necessary to display the name
@@ -269,7 +269,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
                     if !target.name.is_empty() {
                         let target_options = Options {
                             classify: Classify::JustFilenames,
-                            quote_style: QuoteStyle::QuoteSpaces,
+                            quote_style: QuoteStyle::Auto,
                             show_icons: ShowIcons::Never,
                             embed_hyperlinks: EmbedHyperlinks::Off,
                             is_a_tty: self.options.is_a_tty,

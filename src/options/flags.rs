@@ -21,9 +21,9 @@ pub static TREE:         Arg = Arg { short: Some(b'T'), long: "tree",           
 pub static CLASSIFY:     Arg = Arg { short: Some(b'F'), long: "classify",        takes_value: TakesValue::Optional(Some(WHEN), "auto") };
 pub static DEREF_LINKS:  Arg = Arg { short: Some(b'X'), long: "dereference",     takes_value: TakesValue::Forbidden };
 pub static WIDTH:        Arg = Arg { short: Some(b'w'), long: "width",           takes_value: TakesValue::Necessary(None) };
-pub static NO_QUOTES:    Arg = Arg { short: None,       long: "no-quotes",       takes_value: TakesValue::Forbidden };
 pub static ABSOLUTE:     Arg = Arg { short: None,       long: "absolute",        takes_value: TakesValue::Optional(Some(ABSOLUTE_MODES), "on") };
 pub static FOLLOW_LINKS: Arg = Arg { short: None,       long: "follow-symlinks", takes_value: TakesValue::Forbidden };
+pub static QUOTES:       Arg = Arg { short: None,       long: "quotes",          takes_value: TakesValue::Necessary(Some(WHEN)) };
 const ABSOLUTE_MODES: &[&str] = &["on", "follow", "off"];
 
 pub static COLOR:  Arg = Arg { short: None, long: "color",  takes_value: TakesValue::Optional(Some(WHEN), "auto") };
@@ -76,8 +76,6 @@ pub static TIME_STYLE:  Arg = Arg { short: None,       long: "time-style",  take
 pub static HYPERLINK:   Arg = Arg { short: None,       long: "hyperlink",   takes_value: TakesValue::Forbidden };
 pub static MOUNTS:      Arg = Arg { short: Some(b'M'), long: "mounts",      takes_value: TakesValue::Forbidden };
 pub static SMART_GROUP: Arg = Arg { short: None,       long: "smart-group", takes_value: TakesValue::Forbidden };
-const TIMES: Values = &["modified", "changed", "accessed", "created"];
-const TIME_STYLES: Values = &["default", "long-iso", "full-iso", "iso", "relative"];
 
 // suppressing columns
 pub static NO_PERMISSIONS: Arg = Arg { short: None, long: "no-permissions", takes_value: TakesValue::Forbidden };
@@ -96,12 +94,17 @@ pub static SECURITY_CONTEXT:  Arg = Arg { short: Some(b'Z'), long: "context",   
 pub static STDIN:             Arg = Arg { short: None,       long: "stdin",                takes_value: TakesValue::Forbidden };
 pub static FILE_FLAGS:        Arg = Arg { short: Some(b'O'), long: "flags",                takes_value: TakesValue::Forbidden };
 
+const TIMES:       Values = &["modified", "changed", "accessed", "created"];
+const TIME_STYLES: Values = &["default", "long-iso", "full-iso", "iso", "relative"];
+const WHEN:        Values = &["always", "auto", "automatic", "never"];
+const SORTS:       Values = &[ "name", "Name", "size", "extension", "Extension", "modified", "changed", "accessed", "created", "inode", "type", "none" ];
+
 pub static ALL_ARGS: Args = Args(&[
     &VERSION, &HELP,
 
     &ONE_LINE, &LONG, &GRID, &ACROSS, &RECURSE, &TREE, &CLASSIFY, &DEREF_LINKS, &FOLLOW_LINKS,
     &COLOR, &COLOUR, &COLOR_SCALE, &COLOUR_SCALE, &COLOR_SCALE_MODE, &COLOUR_SCALE_MODE,
-    &WIDTH, &NO_QUOTES, &ABSOLUTE,
+    &WIDTH, &NO_QUOTES, &ABSOLUTE, &QUOTES,
 
     &ALL, &ALMOST_ALL, &LIST_DIRS, &LEVEL, &REVERSE, &SORT, &DIRS_FIRST, &DIRS_LAST,
     &IGNORE_GLOB, &GIT_IGNORE, &ONLY_DIRS, &ONLY_FILES,

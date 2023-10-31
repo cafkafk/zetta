@@ -36,7 +36,12 @@ complete -c eza -l icons -d "When to display icons" -x -a "
   automatic\t'Display icons if standard output is a terminal'
   never\t'Never display icons'
 "
-complete -c eza -l no-quotes -d "Don't quote file names with spaces"
+complete -c eza -l quotes -d "When to quote filenames" -x -a "
+  always\t'Always quote filenames, even filenames with no spaces/special characters'
+  auto\t'Quote filenames if they contain spaces or special characters'
+  automatic\t'Quote filenames if they contain spaces or special characters'
+  never\t'Never quote filenames'
+"
 complete -c eza -l hyperlink -d "Display entries as hyperlinks"
 complete -c eza -l follow-symlinks -d "Drill down into symbolic links that point to directories"
 complete -c eza -l absolute -d "Display entries with their absolute path" -x -a "

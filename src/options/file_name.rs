@@ -105,13 +105,28 @@ impl ShowIcons {
 
 impl QuoteStyle {
     pub fn deduce(matches: &MatchedFlags<'_>) -> Result<Self, OptionsError> {
-        if matches.has(&flags::NO_QUOTES)? {
-            Ok(Self::NoQuotes)
+        if let Ok(env) = std::env::var("EZA_QUOTE_STYLE") {
+            match env.as_str() {
+                "always" => return Ok(Self::Always),
+                "never" => return Ok(Self::Never),
+                &_ => return Ok(Self::Auto),
+            };
+        } else if matches.get(&flags::QUOTES)?.is_some() {
+        // prioritize the command line flag over the environment variable 
+            let word = matches.get(&flags::QUOTES)?.unwrap();
+            match word.to_str() {
+                Some("always") => return Ok(Self::Always),
+                Some("never") => return Ok(Self::Never),
+                Some("auto") => return Ok(Self::Auto),
+                None => return Err(OptionsError::BadArgument(&flags::QUOTES, word.into())),
+                _ => return Err(OptionsError::BadArgument(&flags::QUOTES, word.into())),
+            }
         } else {
-            Ok(Self::QuoteSpaces)
-        }
+            return Ok(Self::Auto);
+        };
     }
 }
+
 
 impl EmbedHyperlinks {
     fn deduce(matches: &MatchedFlags<'_>) -> Result<Self, OptionsError> {

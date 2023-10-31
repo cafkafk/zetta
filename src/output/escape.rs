@@ -38,8 +38,8 @@ pub fn escape(
         }
     }
 
-    if quote_style != QuoteStyle::NoQuotes && needs_quotes {
-        bits.insert(bits_starting_length, quote_bit.clone());
+    if quote_style != QuoteStyle::Never && needs_quotes || quote_style == QuoteStyle::Always {
+        bits.insert(0, quote_bit.clone());
         bits.push(quote_bit);
     }
 }
