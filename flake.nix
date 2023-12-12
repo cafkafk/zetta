@@ -55,176 +55,230 @@
     powertest,
     pre-commit-hooks,
     ...
-  }:
-    flake-utils.lib.eachDefaultSystem (
+  }: let
+    inherit (builtins) fromTOML readFile substring;
+
+    cargoToml = fromTOML (readFile ./Cargo.toml);
+    version = "${cargoToml.package.version}+${substring 0 8 self.lastModifiedDate}_${self.shortRev or "dirty"}";
+
+    mkToolchain = pkgs: pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+
+    mkNaersk = pkgs: let
+      toolchain = mkToolchain pkgs;
+    in
+      pkgs.callPackage naersk {
+        cargo = toolchain;
+        rustc = toolchain;
+        clippy = toolchain;
+      };
+
+    mkEzaBuildInputs = pkgs:
+      with pkgs;
+        [zlib]
+        ++ lib.optionals stdenv.isDarwin [libiconv darwin.apple_sdk.frameworks.Security];
+
+    mkEza = pkgs: let
+      naersk' = mkNaersk pkgs;
+      buildInputs = mkEzaBuildInputs pkgs;
+    in
+      naersk'.buildPackage rec {
+        pname = "eza";
+        inherit version;
+
+        src = ./.;
+        doCheck = true; # run `cargo test` on build
+
+        inherit buildInputs;
+        nativeBuildInputs = with pkgs; [cmake pkg-config installShellFiles pandoc];
+
+        buildNoDefaultFeatures = true;
+        buildFeatures = "git";
+
+        postInstall = ''
+          pandoc --standalone -f markdown -t man <(cat "man/eza.1.md" | sed "s/\$version/${version}/g") > man/eza.1
+          pandoc --standalone -f markdown -t man <(cat "man/eza_colors.5.md" | sed "s/\$version/${version}/g") > man/eza_colors.5
+          pandoc --standalone -f markdown -t man <(cat "man/eza_colors-explanation.5.md" | sed "s/\$version/${version}/g")> man/eza_colors-explanation.5
+          installManPage man/eza.1 man/eza_colors.5 man/eza_colors-explanation.5
+          installShellCompletion \
+            --bash completions/bash/eza \
+            --fish completions/fish/eza.fish \
+            --zsh completions/zsh/_eza
+        '';
+
+        meta = with pkgs.lib; {
+          description = "A modern, maintained replacement for ls";
+          longDescription = ''
+            eza is a modern replacement for ls. It uses colours for information by
+            default, helping you distinguish between many types of files, such as
+            whether you are the owner, or in the owning group. It also has extra
+            features not present in the original ls, such as viewing the Git status
+            for a directory, or recursing into directories with a tree view. eza is
+            written in Rust, so it’s small, fast, and portable.
+          '';
+          homepage = "https://github.com/eza-community/eza";
+          license = licenses.mit;
+          mainProgram = "eza";
+          maintainers = with maintainers; [cafkafk];
+        };
+      };
+
+    mkEzaDevPackages = pkgs: let
+      buildInputs = mkEzaBuildInputs pkgs;
+      naersk' = mkNaersk pkgs;
+    in {
+      # Check code
+      check = naersk'.buildPackage {
+        src = ./.;
+        mode = "check";
+        inherit buildInputs;
+      };
+
+      # Run tests
+      test = naersk'.buildPackage {
+        src = ./.;
+        mode = "test";
+        inherit buildInputs;
+      };
+
+      # Lint code
+      clippy = naersk'.buildPackage {
+        src = ./.;
+        mode = "clippy";
+        inherit buildInputs;
+      };
+
+      # Run integration tests
+      trycmd = naersk'.buildPackage {
+        src = ./.;
+        mode = "test";
+        doCheck = true;
+        # No reason to wait for release build
+        release = false;
+        # buildPhase files differ between dep and main phase
+        singleStep = true;
+        # generate testing files
+        buildPhase = ''bash devtools/dir-generator.sh tests/test_dir && echo "Dir generated"'';
+        cargoTestOptions = opts: opts ++ ["--features nix"];
+        inherit buildInputs;
+        nativeBuildInputs = with pkgs; [git];
+      };
+
+      # TODO: add conditionally to checks.
+      # Run integration tests
+      trycmd-local = naersk'.buildPackage {
+        src = ./.;
+        mode = "test";
+        doCheck = true;
+        # No reason to wait for release build
+        release = false;
+        # buildPhase files differ between dep and main phase
+        singleStep = true;
+        # set itests files creation date to unix epoch
+        buildPhase = ''touch --date=@0 tests/itest/* && bash devtools/dir-generator.sh tests/test_dir'';
+        cargoTestOptions = opts: opts ++ ["--features nix" "--features nix-local" "--features powertest"];
+        inherit buildInputs;
+        nativeBuildInputs = with pkgs; [git];
+      };
+
+      # Dump testing files
+      trydump = naersk'.buildPackage {
+        src = ./.;
+        mode = "test";
+        doCheck = true;
+        # No reason to wait for release build
+        release = false;
+        # buildPhase files differ between dep and main phase
+        singleStep = true;
+        # set itests files creation date to unix epoch
+        buildPhase = ''
+          bash devtools/dir-generator.sh tests/test_dir
+          touch --date=@0 tests/itest/*;
+          rm tests/cmd/*.stdout || echo;
+          rm tests/cmd/*.stderr || echo;
+
+          touch --date=@0 tests/ptests/*;
+          rm tests/ptests/*.stdout || echo;
+          rm tests/ptests/*.stderr || echo;
+        '';
+        cargoTestOptions = opts: opts ++ ["--features nix" "--features nix-local" "--features powertest"];
+        TRYCMD = "dump";
+        postInstall = ''
+          cp dump $out -r
+        '';
+        inherit buildInputs;
+        nativeBuildInputs = with pkgs; [git];
+      };
+    };
+  in
+    {
+      overlays.default = _final: prev: {
+        eza = mkEza prev;
+      };
+    }
+    // flake-utils.lib.eachDefaultSystem (
       system: let
         overlays = [(import rust-overlay)];
 
-        pkgs = (import nixpkgs) {
-          inherit system overlays;
-        };
-
-        toolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-
-        naersk' = pkgs.callPackage naersk {
-          cargo = toolchain;
-          rustc = toolchain;
-          clippy = toolchain;
-        };
+        pkgs = import nixpkgs {inherit system overlays;};
 
         treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-        buildInputs = with pkgs; [zlib] ++ lib.optionals stdenv.isDarwin [libiconv darwin.apple_sdk.frameworks.Security];
-      in rec {
+        eza = mkEza pkgs;
+        devPkgs = mkEzaDevPackages pkgs;
+      in {
         # For `nix fmt`
         formatter = treefmtEval.config.build.wrapper;
 
         packages = {
           # For `nix build` `nix run`, & `nix profile install`:
-          default = naersk'.buildPackage rec {
-            pname = "eza";
-            version = "latest";
-
-            src = ./.;
-            doCheck = true; # run `cargo test` on build
-
-            inherit buildInputs;
-            nativeBuildInputs = with pkgs; [cmake pkg-config installShellFiles pandoc];
-
-            buildNoDefaultFeatures = true;
-            buildFeatures = "git";
-
-            postInstall = ''
-              pandoc --standalone -f markdown -t man <(cat "man/eza.1.md" | sed "s/\$version/${version}/g") > man/eza.1
-              pandoc --standalone -f markdown -t man <(cat "man/eza_colors.5.md" | sed "s/\$version/${version}/g") > man/eza_colors.5
-              pandoc --standalone -f markdown -t man <(cat "man/eza_colors-explanation.5.md" | sed "s/\$version/${version}/g")> man/eza_colors-explanation.5
-              installManPage man/eza.1 man/eza_colors.5 man/eza_colors-explanation.5
-              installShellCompletion \
-                --bash completions/bash/eza \
-                --fish completions/fish/eza.fish \
-                --zsh completions/zsh/_eza
-            '';
-
-            meta = with pkgs.lib; {
-              description = "A modern, maintained replacement for ls";
-              longDescription = ''
-                eza is a modern replacement for ls. It uses colours for information by
-                default, helping you distinguish between many types of files, such as
-                whether you are the owner, or in the owning group. It also has extra
-                features not present in the original ls, such as viewing the Git status
-                for a directory, or recursing into directories with a tree view. eza is
-                written in Rust, so it’s small, fast, and portable.
-              '';
-              homepage = "https://github.com/eza-community/eza";
-              license = licenses.mit;
-              mainProgram = "eza";
-              maintainers = with maintainers; [cafkafk];
-            };
-          };
+          default = eza;
 
           # Run `nix build .#check` to check code
-          check = naersk'.buildPackage {
-            src = ./.;
-            mode = "check";
-            inherit buildInputs;
-          };
+          inherit (devPkgs) check;
 
           # Run `nix build .#test` to run tests
-          test = naersk'.buildPackage {
-            src = ./.;
-            mode = "test";
-            inherit buildInputs;
-          };
+          inherit (devPkgs) test;
 
           # Run `nix build .#clippy` to lint code
-          clippy = naersk'.buildPackage {
-            src = ./.;
-            mode = "clippy";
-            inherit buildInputs;
-          };
+          inherit (devPkgs) clippy;
 
           # Run `nix build .#trycmd` to run integration tests
-          trycmd = naersk'.buildPackage {
-            src = ./.;
-            mode = "test";
-            doCheck = true;
-            # No reason to wait for release build
-            release = false;
-            # buildPhase files differ between dep and main phase
-            singleStep = true;
-            # generate testing files
-            buildPhase = ''bash devtools/dir-generator.sh tests/test_dir && echo "Dir generated"'';
-            cargoTestOptions = opts: opts ++ ["--features nix"];
-            inherit buildInputs;
-            nativeBuildInputs = with pkgs; [git];
-          };
+          inherit (devPkgs) trycmd;
 
-          # TODO: add conditionally to checks.
           # Run `nix build .#trycmd` to run integration tests
-          trycmd-local = naersk'.buildPackage {
-            src = ./.;
-            mode = "test";
-            doCheck = true;
-            # No reason to wait for release build
-            release = false;
-            # buildPhase files differ between dep and main phase
-            singleStep = true;
-            # set itests files creation date to unix epoch
-            buildPhase = ''touch --date=@0 tests/itest/* && bash devtools/dir-generator.sh tests/test_dir'';
-            cargoTestOptions = opts: opts ++ ["--features nix" "--features nix-local" "--features powertest"];
-            inherit buildInputs;
-            nativeBuildInputs = with pkgs; [git];
-          };
+          inherit (devPkgs) trycmd-local;
 
           # Run `nix build .#trydump` to dump testing files
-          trydump = naersk'.buildPackage {
-            src = ./.;
-            mode = "test";
-            doCheck = true;
-            # No reason to wait for release build
-            release = false;
-            # buildPhase files differ between dep and main phase
-            singleStep = true;
-            # set itests files creation date to unix epoch
-            buildPhase = ''
-              bash devtools/dir-generator.sh tests/test_dir
-              touch --date=@0 tests/itest/*;
-              rm tests/cmd/*.stdout || echo;
-              rm tests/cmd/*.stderr || echo;
-
-              touch --date=@0 tests/ptests/*;
-              rm tests/ptests/*.stdout || echo;
-              rm tests/ptests/*.stderr || echo;
-            '';
-            cargoTestOptions = opts: opts ++ ["--features nix" "--features nix-local" "--features powertest"];
-            TRYCMD = "dump";
-            postInstall = ''
-              cp dump $out -r
-            '';
-            inherit buildInputs;
-            nativeBuildInputs = with pkgs; [git];
-          };
+          inherit (devPkgs) trydump;
         };
 
         # For `nix develop`:
-        devShells.default = pkgs.mkShell {
-          inherit (self.checks.${system}.pre-commit-check) shellHook;
-          nativeBuildInputs = with pkgs; [
-            rustup
-            toolchain
-            just
-            pandoc
-            convco
-            zip
+        devShells = {
+          default = pkgs.mkShell {
+            inherit (self.checks.${system}.pre-commit-check) shellHook;
+            nativeBuildInputs = with pkgs; [
+              rustup
+              (mkToolchain pkgs)
+              just
+              pandoc
+              convco
+              zip
 
-            # For generating demo
-            vhs
+              # For generating demo
+              vhs
 
-            powertest.packages.${pkgs.system}.default
+              powertest.packages.${pkgs.system}.default
 
-            cargo-hack
-            cargo-udeps
-            cargo-outdated
-          ];
+              cargo-hack
+              cargo-udeps
+              cargo-outdated
+            ];
+          };
+          # `nix develop .#eza-dev` to build nix package locally.
+          eza-dev = pkgs.mkShell {
+            packages = [
+              eza
+            ];
+          };
         };
 
         # For `nix flake check`
@@ -247,14 +301,10 @@
                 };
             };
           formatting = treefmtEval.config.build.check self;
-          build = packages.check;
-          inherit
-            (packages)
-            default
-            test
-            trycmd
-            ;
-          lint = packages.clippy;
+          build = devPkgs.check;
+          default = eza;
+          inherit (devPkgs) test trycmd;
+          lint = devPkgs.clippy;
         };
       }
     );
