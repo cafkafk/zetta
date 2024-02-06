@@ -3,7 +3,9 @@ use nu_ansi_term::{Color as Colour, Style};
 use palette::{FromColor, LinSrgb, Oklab, Srgb};
 
 use crate::{
-    fs::{dir_action::RecurseOptions, feature::git::GitCache, fields::Size, DotFilter, File},
+    fs::{
+        dir_action::RecurseOptions, feature::git::GitCache, fields::Size, DotFilter, File, Filelike,
+    },
     output::{table::TimeType, tree::TreeDepth},
 };
 
@@ -35,9 +37,9 @@ pub struct ColorScaleInformation {
 }
 
 impl ColorScaleInformation {
-    pub fn from_color_scale(
+    pub fn from_color_scale<F: Filelike>(
         color_scale: ColorScaleOptions,
-        files: &[File<'_>],
+        files: &[F],
         dot_filter: DotFilter,
         git: Option<&GitCache>,
         git_ignoring: bool,
@@ -86,7 +88,12 @@ impl ColorScaleInformation {
         style
     }
 
-    pub fn apply_time_gradient(&self, style: Style, file: &File<'_>, time_type: TimeType) -> Style {
+    pub fn apply_time_gradient<F: Filelike>(
+        &self,
+        style: Style,
+        file: &F,
+        time_type: TimeType,
+    ) -> Style {
         let range = match time_type {
             TimeType::Modified => self.modified,
             TimeType::Changed => self.changed,
@@ -102,9 +109,9 @@ impl ColorScaleInformation {
     }
 }
 
-fn update_information_recursively(
+fn update_information_recursively<F: Filelike>(
     information: &mut ColorScaleInformation,
-    files: &[File<'_>],
+    files: &[F],
     dot_filter: DotFilter,
     git: Option<&GitCache>,
     git_ignoring: bool,
@@ -147,11 +154,11 @@ fn update_information_recursively(
         // the dot_filter.
         if file.is_directory()
             && r.is_some_and(|x| !x.is_too_deep(depth.0))
-            && file.name != "."
-            && file.name != ".."
+            && file.name() != "."
+            && file.name() != ".."
         {
             match file.to_dir() {
-                Ok(dir) => {
+                Some(Ok(dir)) => {
                     let files: Vec<File<'_>> = dir
                         .files(dot_filter, git, git_ignoring, false, false)
                         .flatten()
@@ -167,7 +174,8 @@ fn update_information_recursively(
                         r,
                     );
                 }
-                Err(e) => trace!("Unable to access directory {}: {}", file.name, e),
+                Some(Err(e)) => trace!("Unable to access directory {}: {}", file.name(), e),
+                None => {}
             }
         };
     }

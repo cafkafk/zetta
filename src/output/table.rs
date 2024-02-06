@@ -11,7 +11,7 @@ use once_cell::sync::Lazy;
 use uzers::UsersCache;
 
 use crate::fs::feature::git::GitCache;
-use crate::fs::{fields as f, File};
+use crate::fs::{fields as f, Filelike};
 use crate::options::vars::EZA_WINDOWS_ATTRIBUTES;
 use crate::options::Vars;
 use crate::output::cell::TextCell;
@@ -292,7 +292,7 @@ impl TimeType {
     }
 
     /// Returns the corresponding time from [File]
-    pub fn get_corresponding_time(self, file: &File<'_>) -> Option<NaiveDateTime> {
+    pub fn get_corresponding_time<F: Filelike>(self, file: &F) -> Option<NaiveDateTime> {
         match self {
             TimeType::Modified => file.modified_time(),
             TimeType::Changed => file.changed_time(),
@@ -457,16 +457,16 @@ impl<'a> Table<'a> {
         Row { cells }
     }
 
-    pub fn row_for_file(
+    pub fn row_for_file<F: Filelike>(
         &self,
-        file: &File<'_>,
+        file: &F,
         xattrs: bool,
         color_scale_info: Option<ColorScaleInformation>,
     ) -> Row {
         let cells = self
             .columns
             .iter()
-            .map(|c| self.display(file, *c, xattrs, color_scale_info))
+            .map(|c| self.display_file(file, *c, xattrs, color_scale_info))
             .collect();
 
         Row { cells }
@@ -477,7 +477,7 @@ impl<'a> Table<'a> {
     }
 
     #[cfg(unix)]
-    fn permissions_plus(&self, file: &File<'_>, xattrs: bool) -> Option<f::PermissionsPlus> {
+    fn permissions_plus<F: Filelike>(&self, file: &F, xattrs: bool) -> Option<f::PermissionsPlus> {
         file.permissions().map(|p| f::PermissionsPlus {
             file_type: file.type_char(),
             permissions: p,
@@ -487,7 +487,7 @@ impl<'a> Table<'a> {
 
     #[allow(clippy::unnecessary_wraps)] // Needs to match Unix function
     #[cfg(windows)]
-    fn permissions_plus(&self, file: &File<'_>, xattrs: bool) -> Option<f::PermissionsPlus> {
+    fn permissions_plus<F: Filelike>(&self, file: &F, xattrs: bool) -> Option<f::PermissionsPlus> {
         Some(f::PermissionsPlus {
             file_type: file.type_char(),
             #[cfg(windows)]
@@ -497,14 +497,14 @@ impl<'a> Table<'a> {
     }
 
     #[cfg(unix)]
-    fn octal_permissions(&self, file: &File<'_>) -> Option<f::OctalPermissions> {
+    fn octal_permissions<F: Filelike>(&self, file: &F) -> Option<f::OctalPermissions> {
         file.permissions()
             .map(|p| f::OctalPermissions { permissions: p })
     }
 
-    fn display(
+    fn display_file<F: Filelike>(
         &self,
-        file: &File<'_>,
+        file: &F,
         column: Column,
         xattrs: bool,
         color_scale_info: Option<ColorScaleInformation>,
@@ -564,19 +564,19 @@ impl<'a> Table<'a> {
         }
     }
 
-    fn git_status(&self, file: &File<'_>) -> f::Git {
-        debug!("Getting Git status for file {:?}", file.path);
+    fn git_status<F: Filelike>(&self, file: &F) -> f::Git {
+        debug!("Getting Git status for file {:?}", file.path());
 
         self.git
-            .map(|g| g.get(&file.path, file.is_directory()))
+            .map(|g| g.get(file.path(), file.is_directory()))
             .unwrap_or_default()
     }
 
-    fn subdir_git_repo(&self, file: &File<'_>, status: bool) -> f::SubdirGitRepo {
-        debug!("Getting subdir repo status for path {:?}", file.path);
+    fn subdir_git_repo<F: Filelike>(&self, file: &F, status: bool) -> f::SubdirGitRepo {
+        debug!("Getting subdir repo status for path {:?}", file.path());
 
         if file.is_directory() {
-            return f::SubdirGitRepo::from_path(&file.path, status);
+            return f::SubdirGitRepo::from_path(file.path(), status);
         }
         f::SubdirGitRepo::default()
     }

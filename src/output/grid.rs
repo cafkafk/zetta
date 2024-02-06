@@ -3,8 +3,8 @@ use std::io::{self, Write};
 use term_grid::{Direction, Filling, Grid, GridOptions};
 
 use crate::fs::filter::FileFilter;
-use crate::fs::File;
-use crate::output::file_name::Options as FileStyle;
+use crate::fs::Filelike;
+use crate::output::file_name::{GetStyle, Options as FileStyle};
 use crate::theme::Theme;
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
@@ -22,8 +22,8 @@ impl Options {
     }
 }
 
-pub struct Render<'a> {
-    pub files: Vec<File<'a>>,
+pub struct Render<'a, F: Filelike> {
+    pub files: Vec<F>,
     pub theme: &'a Theme,
     pub file_style: &'a FileStyle,
     pub opts: &'a Options,
@@ -31,7 +31,7 @@ pub struct Render<'a> {
     pub filter: &'a FileFilter,
 }
 
-impl<'a> Render<'a> {
+impl<'a, F: Filelike + AsRef<F> + GetStyle> Render<'a, F> {
     pub fn render<W: Write>(mut self, w: &mut W) -> io::Result<()> {
         self.filter.sort_files(&mut self.files);
 
