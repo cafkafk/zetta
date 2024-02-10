@@ -336,6 +336,7 @@ impl<'a, F: Filelike + std::marker::Sync + super::file_name::GetStyle> Render<'a
 
             rows.push(row);
 
+            // TODO: handle archives here for --tree
             if let Some(ref dir) = egg.dir {
                 for file_to_add in dir.files(
                     self.filter.dot_filter,

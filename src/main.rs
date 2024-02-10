@@ -379,8 +379,17 @@ impl<'args> Exa<'args> {
                             None => {}
                         }
                     }
+                    let mut child_archives = Vec::new();
+                    for child_archive in children.iter().filter(|f| f.to_archive().is_some()) {
+                        if let Some(archive) = child_archive.to_archive() {
+                            child_archives.push(archive);
+                        }
+                    }
 
                     self.print_files(Some(&dir.path), children)?;
+                    for child_archive in child_archives {
+                        self.print_archive(&child_archive, &PathBuf::new())?;
+                    }
                     match self.print_dirs(child_dirs, false, false, exit_status) {
                         Ok(_) => (),
                         Err(e) => return Err(e),
