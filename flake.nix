@@ -222,6 +222,7 @@
             pandoc
             convco
             zip
+            zlib
 
             # For releases
             b3sum
