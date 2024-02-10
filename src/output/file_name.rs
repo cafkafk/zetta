@@ -345,7 +345,7 @@ impl<'a, C: Colours, F: Filelike + GetStyle> FileName<'a, C, F> {
     }
 
     #[cfg(windows)]
-    pub(crate) fn classify_char(&self, file: &F) -> Option<&'static str> {
+    pub(crate) fn classify_char<T: Filelike>(&self, file: &T) -> Option<&'static str> {
         if file.is_directory() {
             Some("/")
         } else if file.is_link() {

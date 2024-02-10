@@ -106,6 +106,7 @@ mod modes {
 }
 
 impl Permissions {
+    #[cfg(unix)]
     pub fn from_mode(mode: u32) -> Permissions {
         let has_bit = |bit| mode & bit == bit;
 

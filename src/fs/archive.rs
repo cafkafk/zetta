@@ -23,8 +23,11 @@ pub struct ArchiveEntry {
     name: String,
     path: PathBuf,
     size: u64,
+    #[cfg(unix)]
     permissions: Option<f::Permissions>,
+    #[cfg(unix)]
     user: Option<Owner>,
+    #[cfg(unix)]
     group: Option<Owner>,
     is_directory: bool,
     is_link: bool,
@@ -207,7 +210,6 @@ impl Filelike for ArchiveEntry {
         None
     }
 
-    #[cfg(unix)]
     fn type_char(&self) -> f::Type {
         if self.is_link {
             f::Type::Link
@@ -235,7 +237,6 @@ impl Filelike for ArchiveEntry {
         }
     }
 
-    #[cfg(unix)]
     fn security_context(&self) -> f::SecurityContext<'_> {
         f::SecurityContext {
             context: f::SecurityContextType::None,
@@ -293,26 +294,31 @@ impl TarReader {
             .map(|o| o.map(|p| p.to_path_buf()))
     }
 
+    #[cfg(unix)]
     pub fn uid<R: std::io::Read>(entry: &tar::Entry<'_, R>) -> io::Result<u64> {
         entry.header().uid()
     }
 
+    #[cfg(unix)]
     pub fn gid<R: std::io::Read>(entry: &tar::Entry<'_, R>) -> io::Result<u64> {
         entry.header().gid()
     }
 
+    #[cfg(unix)]
     pub fn username<R: std::io::Read>(
         entry: &tar::Entry<'_, R>,
     ) -> Result<Option<String>, std::str::Utf8Error> {
         entry.header().username().map(|o| o.map(str::to_owned))
     }
 
+    #[cfg(unix)]
     pub fn groupname<R: std::io::Read>(
         entry: &tar::Entry<'_, R>,
     ) -> Result<Option<String>, std::str::Utf8Error> {
         entry.header().groupname().map(|o| o.map(str::to_owned))
     }
 
+    #[cfg(unix)]
     pub fn permissions<R: std::io::Read>(entry: &tar::Entry<'_, R>) -> io::Result<f::Permissions> {
         let mode = entry.header().mode()?;
         Ok(f::Permissions::from_mode(mode))
@@ -351,15 +357,18 @@ impl TarReader {
                 name: File::filename(&path),
                 path,
                 size: TarReader::size(entry),
+                #[cfg(unix)]
+                permissions: Some(TarReader::permissions(entry)?),
+                #[cfg(unix)]
                 user: Some(Owner {
                     id: TarReader::uid(entry)?,
                     name: TarReader::username(entry)?,
                 }),
+                #[cfg(unix)]
                 group: Some(Owner {
                     id: TarReader::gid(entry)?,
                     name: TarReader::groupname(entry)?,
                 }),
-                permissions: Some(TarReader::permissions(entry)?),
                 mtime: Some(TarReader::mtime(entry)?),
                 atime: TarReader::atime(entry).ok(),
                 ctime: TarReader::ctime(entry).ok(),
