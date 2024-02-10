@@ -8,7 +8,7 @@ mod filelike;
 pub use self::filelike::Filelike;
 
 mod archive;
-pub use self::archive::{Archive, ArchiveEntry};
+pub use self::archive::{Archive, ArchiveEntry, ArchiveInspection};
 
 pub mod dir_action;
 pub mod feature;

@@ -31,8 +31,7 @@ use nu_ansi_term::{AnsiStrings as ANSIStrings, Style};
 
 use crate::fs::feature::git::GitCache;
 use crate::fs::filter::GitIgnore;
-use crate::fs::{Archive, ArchiveEntry, Dir, File, Filelike};
-use crate::options::archive_inspection::ArchiveInspection;
+use crate::fs::{Archive, ArchiveEntry, ArchiveInspection, Dir, File, Filelike};
 use crate::options::stdin::FilesInput;
 use crate::options::{vars, Options, OptionsResult, Vars};
 use crate::output::{details, escape, file_name, grid, grid_details, lines, Mode, View};

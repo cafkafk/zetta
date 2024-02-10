@@ -12,6 +12,13 @@ use crate::fs::{Dir, File, Filelike};
 
 use super::mounts::MountedFs;
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum ArchiveInspection {
+    Always,
+    Never,
+    // TODO: option to limit file size (especially for compressed archives)
+}
+
 #[derive(Clone)]
 pub struct Owner {
     pub id: u64,
