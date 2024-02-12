@@ -86,7 +86,7 @@ percent-encoding = "2.3.1"
 phf = { version = "0.11.2", features = ["macros"] }
 plist = { version = "1.6.1", default-features = false }
 uutils_term_grid = "0.6.0"
-tar = "0.4.40"
+tar = { version = "0.4.40", optional = true }
 terminal_size = "0.3.0"
 timeago = { version = "0.4.2", default-features = false }
 unicode-width = "0.1"
@@ -119,10 +119,11 @@ criterion = { version = "0.5.1", features = ["html_reports"] }
 trycmd = "0.15"
 
 [features]
-default = ["git"]
+default = ["git", "archive-inspection"]
 git = ["git2"]
 vendored-openssl = ["git2/vendored-openssl"]
 vendored-libgit2 = ["git2/vendored-libgit2"]
+archive-inspection = ["dep:tar"]
 # Should only be used inside of flake.nix
 nix = []
 # Should only be used inside of flake.nix locally (not on CI)
