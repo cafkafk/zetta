@@ -343,11 +343,6 @@ impl<'dir> File<'dir> {
             Err(_) => false,
         }
     }
-
-    /// Interpret file as archive
-    pub fn to_archive(&self) -> Option<Archive> {
-        Archive::from_path(self.path.clone()).ok()
-    }
 }
 
 impl<'dir> Filelike for File<'dir> {
@@ -378,6 +373,10 @@ impl<'dir> Filelike for File<'dir> {
     fn to_dir(&self) -> Option<io::Result<Dir>> {
         trace!("to_dir: reading dir");
         Some(Dir::read_dir(self.path.clone()))
+    }
+
+    fn to_archive(&self) -> Option<Archive> {
+        Archive::from_path(self.path.clone()).ok()
     }
 
     /// Get the extended attributes of a file path on demand.

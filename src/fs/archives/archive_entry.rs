@@ -7,7 +7,7 @@ use crate::fs::feature::xattr::Attribute;
 use crate::fs::fields as f;
 use crate::fs::file::FileTarget;
 use crate::fs::mounts::MountedFs;
-use crate::fs::{Dir, File, Filelike};
+use crate::fs::{Archive, Dir, File, Filelike};
 
 #[derive(Clone)]
 pub struct Owner {
@@ -64,6 +64,10 @@ impl Filelike for ArchiveEntry {
     }
 
     fn to_dir(&self) -> Option<io::Result<Dir>> {
+        None
+    }
+
+    fn to_archive(&self) -> Option<Archive> {
         None
     }
 

@@ -8,6 +8,7 @@ use crate::fs::feature::xattr::Attribute;
 use crate::fs::fields as f;
 use crate::fs::file::FileTarget;
 use crate::fs::mounts::MountedFs;
+use crate::fs::Archive;
 
 pub trait Filelike {
     /// Path
@@ -52,6 +53,9 @@ pub trait Filelike {
     /// If this file is not representable in the filesystem, `None` will be
     /// returned.
     fn to_dir(&self) -> Option<io::Result<Dir>>;
+
+    /// Interpret file as archive
+    fn to_archive(&self) -> Option<Archive>;
 
     /// Whether this file is a directory on the filesystem.
     fn is_directory(&self) -> bool;
