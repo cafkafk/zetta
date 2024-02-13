@@ -55,13 +55,16 @@ pub trait Filelike {
     fn to_dir(&self) -> Option<io::Result<Dir>>;
 
     /// Interpret file as archive
-    fn to_archive(&self) -> Option<Archive>;
+    fn to_archive(&self) -> io::Result<Archive>;
 
     /// Whether this file is a directory on the filesystem.
     fn is_directory(&self) -> bool;
 
     /// Whether this file is a directory, or a symlink pointing to a directory.
     fn points_to_directory(&self) -> bool;
+
+    /// Wheter this file is an archive that can be inspected
+    fn is_archive(&self) -> bool;
 
     /// Whether this file is a regular file on the filesystem — that is, not a
     /// directory, a link, or anything else treated specially.

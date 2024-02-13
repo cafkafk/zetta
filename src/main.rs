@@ -293,7 +293,7 @@ impl<'args> Exa<'args> {
             && !self.options.dir_action.treat_dirs_as_files()
         {
             for f in &files {
-                if let Some(archive) = f.to_archive() {
+                if let Ok(archive) = f.to_archive() { // TODO: use is_archive
                     archives.push(archive);
                 }
             }
@@ -380,8 +380,8 @@ impl<'args> Exa<'args> {
                         }
                     }
                     let mut child_archives = Vec::new();
-                    for child_archive in children.iter().filter(|f| f.to_archive().is_some()) {
-                        if let Some(archive) = child_archive.to_archive() {
+                    for child_archive in children.iter().filter(|f| f.is_archive()) {
+                        if let Ok(archive) = child_archive.to_archive() {
                             child_archives.push(archive);
                         }
                     }

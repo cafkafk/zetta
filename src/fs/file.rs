@@ -375,8 +375,8 @@ impl<'dir> Filelike for File<'dir> {
         Some(Dir::read_dir(self.path.clone()))
     }
 
-    fn to_archive(&self) -> Option<Archive> {
-        Archive::from_path(self.path.clone()).ok()
+    fn to_archive(&self) -> io::Result<Archive> {
+        Archive::from_path(self.path.clone())
     }
 
     /// Get the extended attributes of a file path on demand.
@@ -404,6 +404,10 @@ impl<'dir> Filelike for File<'dir> {
         }
 
         false
+    }
+
+    fn is_archive(&self) -> bool {
+        self.to_archive().is_ok()
     }
 
     /// Whether this file is a regular file on the filesystem — that is, not a

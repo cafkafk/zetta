@@ -67,8 +67,11 @@ impl Filelike for ArchiveEntry {
         None
     }
 
-    fn to_archive(&self) -> Option<Archive> {
-        None
+    fn to_archive(&self) -> io::Result<Archive> {
+        Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "Nested archive inspection not yet supported",
+        ))
     }
 
     fn is_directory(&self) -> bool {
@@ -79,6 +82,11 @@ impl Filelike for ArchiveEntry {
         // symlinks in archive will always be handled as broken links,
         // thus no link will ever be a directory
         self.is_directory
+    }
+
+    fn is_archive(&self) -> bool {
+        // nested archive inspection not yet supported
+        false
     }
 
     fn is_file(&self) -> bool {
