@@ -243,6 +243,23 @@ impl<'a, F: Filelike + std::marker::Sync + GetStyle> Render<'a, F> {
         xattr_count > 1 || (xattr_count == 1 && !selinux_ctx_shown)
     }
 
+    fn add_xattrs_row(&self, rows: &mut Vec<Row>, xattrs: &[Attribute], depth: TreeDepth) {
+        for xattr in xattrs {
+            rows.push(self.render_xattr(xattr, TreeParams::new(depth, false)));
+        }
+    }
+
+    fn add_error_rows(
+        &self,
+        rows: &mut Vec<Row>,
+        errors: &[(io::Error, Option<PathBuf>)],
+        depth: TreeDepth,
+    ) {
+        for (error, path) in errors {
+            rows.push(self.render_error(error, TreeParams::new(depth, false), path.clone()));
+        }
+    }
+
     /// Adds files to the table, possibly recursively. This is easily
     /// parallelisable, and uses a pool of threads.
     fn add_files_to_table<T: Filelike + std::marker::Sync + GetStyle>(
@@ -356,137 +373,103 @@ impl<'a, F: Filelike + std::marker::Sync + GetStyle> Render<'a, F> {
 
             rows.push(row);
 
-            match egg.dir {
-                Some(Dirlike::Dir(ref dir)) => {
-                    let mut files = Vec::new();
-                    for file_to_add in dir.files(
-                        self.filter.dot_filter,
-                        self.git,
-                        self.git_ignoring,
-                        egg.file.deref_links(),
-                        egg.file.is_recursive_size(),
-                    ) {
-                        match file_to_add {
-                            Ok(f) => {
-                                files.push(f);
+            if let Some(dirlike) = egg.dir {
+                let mut files = Vec::new();
+                match dirlike {
+                    Dirlike::Dir(ref dir) => {
+                        let mut files = Vec::new();
+                        for file_to_add in dir.files(
+                            self.filter.dot_filter,
+                            self.git,
+                            self.git_ignoring,
+                            egg.file.deref_links(),
+                            egg.file.is_recursive_size(),
+                        ) {
+                            match file_to_add {
+                                Ok(f) => {
+                                    files.push(f);
+                                }
+                                Err((path, e)) => {
+                                    errors.push((e, Some(path)));
+                                }
                             }
-                            Err((path, e)) => {
-                                errors.push((e, Some(path)));
+                        }
+
+                        self.filter.filter_child_files(&mut files);
+
+                        if !files.is_empty() {
+                            self.add_xattrs_row(rows, egg.xattrs, depth.deeper());
+                            self.add_error_rows(rows, &errors, depth.deeper());
+
+                            self.add_files_to_table(
+                                table,
+                                rows,
+                                None,
+                                &files,
+                                depth.deeper(),
+                                color_scale_info,
+                            );
+                            continue;
+                        }
+                    }
+                    Dirlike::Archive(archive) => {
+                        for file_to_add in archive.files(PathBuf::new()) {
+                            match file_to_add {
+                                Ok(f) => files.push(f.clone()),
+                                Err(e) => errors.push((
+                                    io::Error::new(io::ErrorKind::Other, e.to_string()),
+                                    Some(egg.file.path().clone()),
+                                )),
                             }
                         }
-                    }
 
-                    self.filter.filter_child_files(&mut files);
+                        self.filter.filter_child_files(&mut files);
 
-                    if !files.is_empty() {
-                        for xattr in egg.xattrs {
-                            rows.push(
-                                self.render_xattr(xattr, TreeParams::new(depth.deeper(), false)),
+                        if !files.is_empty() {
+                            self.add_xattrs_row(rows, egg.xattrs, depth.deeper());
+                            self.add_error_rows(rows, &errors, depth.deeper());
+
+                            self.add_files_to_table(
+                                table,
+                                rows,
+                                None,
+                                &files,
+                                depth.deeper(),
+                                color_scale_info,
                             );
+                            continue;
+                        }
+                    }
+                    Dirlike::ArchiveDir((archive, dir_path)) => {
+                        let mut files = Vec::new();
+                        for file_to_add in archive.files(dir_path.clone()) {
+                            match file_to_add {
+                                Ok(f) => files.push(f.clone()),
+                                Err(e) => errors.push((
+                                    io::Error::new(io::ErrorKind::Other, e.to_string()),
+                                    Some(egg.file.path().clone()),
+                                )),
+                            }
                         }
 
-                        for (error, path) in errors {
-                            rows.push(self.render_error(
-                                &error,
-                                TreeParams::new(depth.deeper(), false),
-                                path,
-                            ));
-                        }
+                        self.filter.filter_child_files(&mut files);
 
-                        self.add_files_to_table(
-                            table,
-                            rows,
-                            archive,
-                            &files,
-                            depth.deeper(),
-                            color_scale_info,
-                        );
-                        continue;
+                        if !files.is_empty() {
+                            self.add_xattrs_row(rows, egg.xattrs, depth.deeper());
+                            self.add_error_rows(rows, &errors, depth.deeper());
+
+                            self.add_files_to_table(
+                                table,
+                                rows,
+                                None,
+                                &files,
+                                depth.deeper(),
+                                color_scale_info,
+                            );
+                            continue;
+                        }
                     }
                 }
-                Some(Dirlike::Archive(archive)) => {
-                    let mut files = Vec::new();
-                    for file_to_add in archive.files(PathBuf::new()) {
-                        match file_to_add {
-                            Ok(f) => files.push(f.clone()),
-                            Err(e) => errors.push((
-                                io::Error::new(io::ErrorKind::Other, e.to_string()),
-                                Some(egg.file.path().clone()),
-                            )),
-                        }
-                    }
-
-                    // TODO: reduce code duplication
-                    self.filter.filter_child_files(&mut files);
-
-                    if !files.is_empty() {
-                        for xattr in egg.xattrs {
-                            rows.push(
-                                self.render_xattr(xattr, TreeParams::new(depth.deeper(), false)),
-                            );
-                        }
-
-                        for (error, path) in errors {
-                            rows.push(self.render_error(
-                                &error,
-                                TreeParams::new(depth.deeper(), false),
-                                path,
-                            ));
-                        }
-
-                        self.add_files_to_table(
-                            table,
-                            rows,
-                            Some(&archive),
-                            &files,
-                            depth.deeper(),
-                            color_scale_info,
-                        );
-                        continue;
-                    }
-                }
-                Some(Dirlike::ArchiveDir((archive, dir_path))) => {
-                    let mut files = Vec::new();
-                    for file_to_add in archive.files(dir_path.clone()) {
-                        match file_to_add {
-                            Ok(f) => files.push(f.clone()),
-                            Err(e) => errors.push((
-                                io::Error::new(io::ErrorKind::Other, e.to_string()),
-                                Some(egg.file.path().clone()),
-                            )),
-                        }
-                    }
-
-                    // TODO: reduce code duplication
-                    self.filter.filter_child_files(&mut files);
-
-                    if !files.is_empty() {
-                        for xattr in egg.xattrs {
-                            rows.push(
-                                self.render_xattr(xattr, TreeParams::new(depth.deeper(), false)),
-                            );
-                        }
-
-                        for (error, path) in errors {
-                            rows.push(self.render_error(
-                                &error,
-                                TreeParams::new(depth.deeper(), false),
-                                path,
-                            ));
-                        }
-
-                        self.add_files_to_table(
-                            table,
-                            rows,
-                            Some(archive),
-                            &files,
-                            depth.deeper(),
-                            color_scale_info,
-                        );
-                        continue;
-                    }
-                }
-                None => {}
             }
 
             let count = egg.xattrs.len();
