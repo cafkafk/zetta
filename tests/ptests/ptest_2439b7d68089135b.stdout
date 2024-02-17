@@ -22,7 +22,7 @@ DISPLAY OPTIONS
   --hyperlink                display entries as hyperlinks
   --absolute                 display entries with their absolute path (on, follow, off)
   -w, --width COLS           set screen width in columns
-
+  -q, --archive-inspection   list content of archives (supported formats: tar)
 
 FILTERING AND SORTING OPTIONS
   -a, --all                  show hidden and 'dot' files. Use this twice to also
