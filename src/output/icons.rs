@@ -36,6 +36,7 @@ impl Icons {
     const ESLINT: char          = '\u{e655}';  // 
     const FILE: char            = '\u{f15b}';  // 
     const FILE_3D: char         = '\u{f01a7}'; // 󰆧
+    const FILE_UNKNOW: char     = '\u{f086f}'; // 󰡯
     const FOLDER: char          = '\u{e5ff}';  // 
     const FOLDER_BUILD: char    = '\u{f19fc}'; // 󱧼
     const FOLDER_CONFIG: char   = '\u{e5fc}';  // 
