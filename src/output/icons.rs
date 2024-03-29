@@ -138,6 +138,7 @@ impl Icons {
     const SUBTITLE: char        = '\u{f0a16}'; // 󰨖
     const TCL: char             = '\u{f06d3}'; // 󰛓
     const TERRAFORM: char       = '\u{f1062}'; // 󱁢
+    const FOLDER_BUILD: char    = '\u{f19fc}'; // 󱧼
     const TEXT: char            = '\u{f15c}';  // 
     const TYPST: char           = '\u{f37f}';  // 
     const TMUX: char            = '\u{ebc8}';  // 
