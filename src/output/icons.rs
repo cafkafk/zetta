@@ -36,7 +36,6 @@ impl Icons {
     const ESLINT: char          = '\u{e655}';  // 
     const FILE: char            = '\u{f15b}';  // 
     const FILE_3D: char         = '\u{f01a7}'; // 󰆧
-    const FILE_UNKNOW: char     = '\u{f086f}'; // 󰡯
     const FOLDER: char          = '\u{e5ff}';  // 
     const FOLDER_BUILD: char    = '\u{f19fc}'; // 󱧼
     const FOLDER_CONFIG: char   = '\u{e5fc}';  // 
@@ -46,6 +45,7 @@ impl Icons {
     const FOLDER_KEY: char      = '\u{f08ac}'; // 󰢬
     const FOLDER_NPM: char      = '\u{e5fa}';  // 
     const FOLDER_OPEN: char     = '\u{f115}';  // 
+    const FILE_UNKNOW: char     = '\u{f086f}'; // 󰡯
     const FONT: char            = '\u{f031}';  // 
     const FREECAD: char         = '\u{f336}';  // 
     const GIMP: char            = '\u{f338}';  // 
@@ -138,7 +138,6 @@ impl Icons {
     const SUBTITLE: char        = '\u{f0a16}'; // 󰨖
     const TCL: char             = '\u{f06d3}'; // 󰛓
     const TERRAFORM: char       = '\u{f1062}'; // 󱁢
-    const FOLDER_BUILD: char    = '\u{f19fc}'; // 󱧼
     const TEXT: char            = '\u{f15c}';  // 
     const TYPST: char           = '\u{f37f}';  // 
     const TMUX: char            = '\u{ebc8}';  // 
