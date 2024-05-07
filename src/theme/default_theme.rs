@@ -126,7 +126,7 @@ impl UiStyles {
 
 impl Size {
     pub fn colourful(scale: ColorScaleOptions) -> Self {
-        if scale.size && scale.mode == ColorScaleMode::Fixed {
+        if scale.mode == ColorScaleMode::Fixed {
             Self::colourful_fixed()
         } else {
             Self::colourful_gradient()

@@ -18,7 +18,9 @@ pub struct ColorScaleOptions {
 
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum ColorScaleMode {
+    // Color scale is disabled, use a static color for the range
     Fixed,
+    // Color scale uses an automatic gradient of colors for the range
     Gradient,
 }
 
