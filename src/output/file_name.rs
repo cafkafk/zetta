@@ -5,11 +5,12 @@ use nu_ansi_term::{AnsiString as ANSIString, Style};
 use path_clean;
 use unicode_width::UnicodeWidthStr;
 
-use crate::fs::{File, FileTarget};
+use crate::fs::{ArchiveEntry, File, FileTarget, Filelike};
 use crate::output::cell::TextCellContents;
 use crate::output::escape;
 use crate::output::icons::{icon_for_file, iconify_style};
 use crate::output::render::FiletypeColours;
+use crate::theme::Theme;
 
 /// Basically a file name factory.
 #[derive(Debug, Copy, Clone)]
@@ -36,21 +37,16 @@ pub struct Options {
 impl Options {
     /// Create a new `FileName` that prints the given file’s name, painting it
     /// with the remaining arguments.
-    pub fn for_file<'a, 'dir, C>(
+    pub fn for_file<'a, C, F: Filelike + GetStyle>(
         self,
-        file: &'a File<'dir>,
+        file: &'a F,
         colours: &'a C,
-    ) -> FileName<'a, 'dir, C> {
+    ) -> FileName<'a, C, F> {
         FileName {
             file,
             colours,
             link_style: LinkStyle::JustFilenames,
             options: self,
-            target: if file.is_link() {
-                Some(file.link_target())
-            } else {
-                None
-            },
             mount_style: MountStyle::JustDirectoryNames,
         }
     }
@@ -139,15 +135,12 @@ pub enum QuoteStyle {
 
 /// A **file name** holds all the information necessary to display the name
 /// of the given file. This is used in all of the views.
-pub struct FileName<'a, 'dir, C> {
+pub struct FileName<'a, C, F: Filelike + GetStyle> {
     /// A reference to the file that we’re getting the name of.
-    file: &'a File<'dir>,
+    file: &'a F,
 
     /// The colours used to paint the file name and its surrounding text.
     colours: &'a C,
-
-    /// The file that this file points to if it’s a link.
-    target: Option<FileTarget<'dir>>, // todo: remove?
 
     /// How to handle displaying links.
     link_style: LinkStyle,
@@ -158,7 +151,7 @@ pub struct FileName<'a, 'dir, C> {
     mount_style: MountStyle,
 }
 
-impl<'a, 'dir, C> FileName<'a, 'dir, C> {
+impl<'a, C, F: Filelike + GetStyle> FileName<'a, C, F> {
     /// Sets the flag on this file name to display link targets with an
     /// arrow followed by their path.
     pub fn with_link_paths(mut self) -> Self {
@@ -180,7 +173,7 @@ impl<'a, 'dir, C> FileName<'a, 'dir, C> {
     }
 }
 
-impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
+impl<'a, C: Colours, F: Filelike + GetStyle> FileName<'a, C, F> {
     /// Paints the name of the file using the colours, resulting in a vector
     /// of coloured cells that can be printed to the terminal.
     ///
@@ -209,13 +202,14 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
             bits.push(style.paint(" ".repeat(spaces_count as usize)));
         }
 
-        if self.file.parent_dir.is_none() {
-            if let Some(parent) = self.file.path.parent() {
+        // TODO: what is the reason for this?
+        if self.file.parent_directory().is_none() {
+            if let Some(parent) = self.file.path().parent() {
                 self.add_parent_bits(&mut bits, parent);
             }
         }
 
-        if !self.file.name.is_empty() {
+        if !self.file.name().is_empty() {
             // The “missing file” colour seems like it should be used here,
             // but it’s not! In a grid view, where there’s no space to display
             // link targets, the filename has to have a different style to
@@ -227,7 +221,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
             }
         }
 
-        if let (LinkStyle::FullLinkPaths, Some(target)) = (self.link_style, self.target.as_ref()) {
+        if let (LinkStyle::FullLinkPaths, target) = (self.link_style, self.file.link_target()) {
             match target {
                 FileTarget::Ok(target) => {
                     bits.push(Style::default().paint(" "));
@@ -249,9 +243,8 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
                         };
 
                         let target_name = FileName {
-                            file: target,
+                            file: target.as_ref(),
                             colours: self.colours,
-                            target: None,
                             link_style: LinkStyle::FullLinkPaths,
                             options: target_options,
                             mount_style: MountStyle::JustDirectoryNames,
@@ -262,7 +255,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
                         }
 
                         if should_add_classify_char {
-                            if let Some(class) = self.classify_char(target) {
+                            if let Some(class) = self.classify_char(&*target) {
                                 bits.push(Style::default().paint(class));
                             }
                         }
@@ -337,7 +330,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
     /// The character to be displayed after a file when classifying is on, if
     /// the file’s type has one associated with it.
     #[cfg(unix)]
-    pub(crate) fn classify_char(&self, file: &File<'_>) -> Option<&'static str> {
+    pub(crate) fn classify_char<T: Filelike>(&self, file: &T) -> Option<&'static str> {
         if file.is_executable_file() {
             Some("*")
         } else if file.is_directory() {
@@ -354,7 +347,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
     }
 
     #[cfg(windows)]
-    pub(crate) fn classify_char(&self, file: &File<'_>) -> Option<&'static str> {
+    pub(crate) fn classify_char<T: Filelike>(&self, file: &T) -> Option<&'static str> {
         if file.is_directory() {
             Some("/")
         } else if file.is_link() {
@@ -427,7 +420,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
     fn display_name(&self) -> String {
         match self.options.absolute {
             Absolute::On => std::env::current_dir().ok().and_then(|p| {
-                path_clean::clean(p.join(&self.file.path))
+                path_clean::clean(p.join(self.file.path()))
                     .to_str()
                     .map(std::borrow::ToOwned::to_owned)
             }),
@@ -438,7 +431,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
                 .map(std::borrow::ToOwned::to_owned),
             Absolute::Off => None,
         }
-        .unwrap_or(self.file.name.clone())
+        .unwrap_or(self.file.name().clone())
     }
 
     /// Figures out which colour to paint the filename part of the output,
@@ -447,10 +440,8 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
     /// if there’s nowhere else for that fact to be shown.)
     pub fn style(&self) -> Style {
         if let LinkStyle::JustFilenames = self.link_style {
-            if let Some(ref target) = self.target {
-                if target.is_broken() {
-                    return self.colours.broken_symlink();
-                }
+            if let FileTarget::Broken(_) = self.file.link_target() {
+                return self.colours.broken_symlink();
             }
         }
 
@@ -476,7 +467,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
 
     /// For grid's use, to cover the case of hyperlink escape sequences
     pub fn bare_utf8_width(&self) -> usize {
-        UnicodeWidthStr::width(self.file.name.as_str())
+        UnicodeWidthStr::width(self.file.name().as_str())
     }
 }
 
@@ -510,5 +501,27 @@ pub trait Colours: FiletypeColours {
     /// The style to paint a directory that has a filesystem mounted on it.
     fn mount_point(&self) -> Style;
 
-    fn colour_file(&self, file: &File<'_>) -> Style;
+    fn colour_file<F: Filelike + GetStyle>(&self, file: &F) -> Style;
+}
+
+pub trait GetStyle {
+    fn get_style(&self, theme: &Theme) -> Style;
+}
+
+impl GetStyle for File<'_> {
+    fn get_style(&self, theme: &Theme) -> Style {
+        theme
+            .exts
+            .get_style(self, theme)
+            .unwrap_or(theme.ui.filekinds.normal)
+    }
+}
+
+impl GetStyle for ArchiveEntry {
+    fn get_style(&self, theme: &Theme) -> Style {
+        theme
+            .exts
+            .get_style_for_archive(self, theme)
+            .unwrap_or(theme.ui.filekinds.normal)
+    }
 }

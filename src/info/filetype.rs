@@ -9,7 +9,8 @@
 
 use phf::{phf_map, Map};
 
-use crate::fs::File;
+use crate::fs::Filelike;
+use crate::info::sources::GetSourceFiles;
 
 #[derive(Debug, Clone)]
 pub enum FileType {
@@ -395,21 +396,27 @@ impl FileType {
     /// Lookup the file type based on the file's name, by the file name
     /// lowercase extension, or if the file could be compiled from related
     /// source code.
-    pub(crate) fn get_file_type(file: &File<'_>) -> Option<FileType> {
+    pub(crate) fn get_file_type<F: Filelike + GetSourceFiles>(file: &F) -> Option<FileType> {
         // Case-insensitive readme is checked first for backwards compatibility.
-        if file.name.to_lowercase().starts_with("readme") {
+        if file.name().to_lowercase().starts_with("readme") {
             return Some(Self::Build);
         }
-        if let Some(file_type) = FILENAME_TYPES.get(&file.name) {
+        if let Some(file_type) = FILENAME_TYPES.get(file.name()) {
             return Some(file_type.clone());
         }
-        if let Some(file_type) = file.ext.as_ref().and_then(|ext| EXTENSION_TYPES.get(ext)) {
+        if let Some(file_type) = file
+            .extension()
+            .as_ref()
+            .and_then(|ext| EXTENSION_TYPES.get(ext))
+        {
             return Some(file_type.clone());
         }
-        if file.name.ends_with('~') || (file.name.starts_with('#') && file.name.ends_with('#')) {
+        if file.name().ends_with('~')
+            || (file.name().starts_with('#') && file.name().ends_with('#'))
+        {
             return Some(Self::Temp);
         }
-        if let Some(dir) = file.parent_dir {
+        if let Some(dir) = file.parent_directory() {
             if file
                 .get_source_files()
                 .iter()

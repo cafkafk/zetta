@@ -73,10 +73,10 @@ use crate::fs::feature::git::GitCache;
 use crate::fs::feature::xattr::Attribute;
 use crate::fs::fields::SecurityContextType;
 use crate::fs::filter::FileFilter;
-use crate::fs::{Dir, File};
+use crate::fs::{Archive, Dir, Filelike};
 use crate::output::cell::TextCell;
 use crate::output::color_scale::{ColorScaleInformation, ColorScaleOptions};
-use crate::output::file_name::Options as FileStyle;
+use crate::output::file_name::{GetStyle, Options as FileStyle};
 use crate::output::table::{Options as TableOptions, Row as TableRow, Table};
 use crate::output::tree::{TreeDepth, TreeParams, TreeTrunk};
 use crate::theme::Theme;
@@ -117,9 +117,9 @@ pub struct Options {
     pub color_scale: ColorScaleOptions,
 }
 
-pub struct Render<'a> {
-    pub dir: Option<&'a Dir>,
-    pub files: Vec<File<'a>>,
+pub struct Render<'a, F: Filelike> {
+    pub dir_path: Option<&'a PathBuf>,
+    pub files: Vec<F>,
     pub theme: &'a Theme,
     pub file_style: &'a FileStyle,
     pub opts: &'a Options,
@@ -140,22 +140,28 @@ pub struct Render<'a> {
     pub git_repos: bool,
 }
 
+enum Dirlike<'a> {
+    Dir(Dir),
+    Archive(Archive),
+    ArchiveDir((&'a Archive, &'a PathBuf)),
+}
+
 #[rustfmt::skip]
-struct Egg<'a> {
+struct Egg<'a, 'b, F: Filelike + GetStyle> {
     table_row: Option<TableRow>,
     xattrs:    &'a [Attribute],
     errors:    Vec<(io::Error, Option<PathBuf>)>,
-    dir:       Option<Dir>,
-    file:      &'a File<'a>,
+    dir:       Option<Dirlike<'b>>,
+    file:      &'a F,
 }
 
-impl<'a> AsRef<File<'a>> for Egg<'a> {
-    fn as_ref(&self) -> &File<'a> {
+impl<'a, 'b, F: Filelike + super::file_name::GetStyle> AsRef<F> for Egg<'a, 'b, F> {
+    fn as_ref(&self) -> &F {
         self.file
     }
 }
 
-impl<'a> Render<'a> {
+impl<'a, F: Filelike + std::marker::Sync + GetStyle> Render<'a, F> {
     pub fn render<W: Write>(mut self, w: &mut W) -> io::Result<()> {
         let mut rows = Vec::new();
 
@@ -169,14 +175,14 @@ impl<'a> Render<'a> {
         );
 
         if let Some(ref table) = self.opts.table {
-            match (self.git, self.dir) {
-                (Some(g), Some(d)) => {
-                    if !g.has_anything_for(&d.path) {
+            match (self.git, self.dir_path) {
+                (Some(g), Some(path)) => {
+                    if !g.has_anything_for(path) {
                         self.git = None;
                     }
                 }
                 (Some(g), None) => {
-                    if !self.files.iter().any(|f| g.has_anything_for(&f.path)) {
+                    if !self.files.iter().any(|f| g.has_anything_for(f.path())) {
                         self.git = None;
                     }
                 }
@@ -197,6 +203,7 @@ impl<'a> Render<'a> {
             self.add_files_to_table(
                 &mut table,
                 &mut rows,
+                None,
                 &self.files,
                 TreeDepth::root(),
                 color_scale_info,
@@ -209,6 +216,7 @@ impl<'a> Render<'a> {
             self.add_files_to_table(
                 &mut None,
                 &mut rows,
+                None,
                 &self.files,
                 TreeDepth::root(),
                 color_scale_info,
@@ -223,7 +231,7 @@ impl<'a> Render<'a> {
     }
 
     /// Whether to show the extended attribute hint
-    pub fn show_xattr_hint(&self, file: &File<'_>) -> bool {
+    pub fn show_xattr_hint<T: Filelike>(&self, file: &T) -> bool {
         // Do not show the hint '@' if the only extended attribute is the security
         // attribute and the security attribute column is active.
         let xattr_count = file.extended_attributes().len();
@@ -235,13 +243,31 @@ impl<'a> Render<'a> {
         xattr_count > 1 || (xattr_count == 1 && !selinux_ctx_shown)
     }
 
+    fn add_xattrs_row(&self, rows: &mut Vec<Row>, xattrs: &[Attribute], depth: TreeDepth) {
+        for xattr in xattrs {
+            rows.push(self.render_xattr(xattr, TreeParams::new(depth, false)));
+        }
+    }
+
+    fn add_error_rows(
+        &self,
+        rows: &mut Vec<Row>,
+        errors: &[(io::Error, Option<PathBuf>)],
+        depth: TreeDepth,
+    ) {
+        for (error, path) in errors {
+            rows.push(self.render_error(error, TreeParams::new(depth, false), path.clone()));
+        }
+    }
+
     /// Adds files to the table, possibly recursively. This is easily
     /// parallelisable, and uses a pool of threads.
-    fn add_files_to_table<'dir>(
+    fn add_files_to_table<T: Filelike + std::marker::Sync + GetStyle>(
         &self,
         table: &mut Option<Table<'a>>,
         rows: &mut Vec<Row>,
-        src: &[File<'dir>],
+        archive: Option<&Archive>,
+        src: &[T],
         depth: TreeDepth,
         color_scale_info: Option<ColorScaleInformation>,
     ) {
@@ -289,11 +315,24 @@ impl<'a> Render<'a> {
                     if file.is_directory() && r.tree && !r.is_too_deep(depth.0) {
                         trace!("matching on to_dir");
                         match file.to_dir() {
-                            Ok(d) => {
-                                dir = Some(d);
+                            Some(Ok(d)) => {
+                                dir = Some(Dirlike::Dir(d));
                             }
-                            Err(e) => {
+                            Some(Err(e)) => {
                                 errors.push((e, None));
+                            }
+                            None => {}
+                        }
+                    }
+                    match archive {
+                        Some(archive) => {
+                            dir = Some(Dirlike::ArchiveDir((archive, file.path())));
+                        }
+                        None => {
+                            if file.is_archive() {
+                                if let Ok(archive) = file.to_archive() {
+                                    dir = Some(Dirlike::Archive(archive));
+                                }
                             }
                         }
                     }
@@ -309,11 +348,9 @@ impl<'a> Render<'a> {
             })
             .collect();
 
-        // this is safe because all entries have been initialized above
         self.filter.sort_files(&mut file_eggs);
 
         for (tree_params, egg) in depth.iterate_over(file_eggs.into_iter()) {
-            let mut files = Vec::new();
             let mut errors = egg.errors;
 
             if let (Some(ref mut t), Some(row)) = (table.as_mut(), egg.table_row.as_ref()) {
@@ -338,41 +375,102 @@ impl<'a> Render<'a> {
 
             rows.push(row);
 
-            if let Some(ref dir) = egg.dir {
-                for file_to_add in dir.files(
-                    self.filter.dot_filter,
-                    self.git,
-                    self.git_ignoring,
-                    egg.file.deref_links,
-                    egg.file.is_recursive_size(),
-                ) {
-                    match file_to_add {
-                        Ok(f) => {
-                            files.push(f);
+            if let Some(dirlike) = egg.dir {
+                let mut files = Vec::new();
+                match dirlike {
+                    Dirlike::Dir(ref dir) => {
+                        let mut files = Vec::new();
+                        for file_to_add in dir.files(
+                            self.filter.dot_filter,
+                            self.git,
+                            self.git_ignoring,
+                            egg.file.deref_links(),
+                            egg.file.is_recursive_size(),
+                        ) {
+                            match file_to_add {
+                                Ok(f) => {
+                                    files.push(f);
+                                }
+                                Err((path, e)) => {
+                                    errors.push((e, Some(path)));
+                                }
+                            }
                         }
-                        Err((path, e)) => {
-                            errors.push((e, Some(path)));
+
+                        self.filter.filter_child_files(&mut files);
+
+                        if !files.is_empty() {
+                            self.add_xattrs_row(rows, egg.xattrs, depth.deeper());
+                            self.add_error_rows(rows, &errors, depth.deeper());
+
+                            self.add_files_to_table(
+                                table,
+                                rows,
+                                None,
+                                &files,
+                                depth.deeper(),
+                                color_scale_info,
+                            );
+                            continue;
                         }
                     }
-                }
+                    Dirlike::Archive(archive) => {
+                        for file_to_add in archive.files(PathBuf::new()) {
+                            match file_to_add {
+                                Ok(f) => files.push(f.clone()),
+                                Err(e) => errors.push((
+                                    io::Error::new(io::ErrorKind::Other, e.to_string()),
+                                    Some(egg.file.path().clone()),
+                                )),
+                            }
+                        }
 
-                self.filter.filter_child_files(&mut files);
+                        self.filter.filter_child_files(&mut files);
 
-                if !files.is_empty() {
-                    for xattr in egg.xattrs {
-                        rows.push(self.render_xattr(xattr, TreeParams::new(depth.deeper(), false)));
+                        if !files.is_empty() {
+                            self.add_xattrs_row(rows, egg.xattrs, depth.deeper());
+                            self.add_error_rows(rows, &errors, depth.deeper());
+
+                            self.add_files_to_table(
+                                table,
+                                rows,
+                                None,
+                                &files,
+                                depth.deeper(),
+                                color_scale_info,
+                            );
+                            continue;
+                        }
                     }
+                    Dirlike::ArchiveDir((archive, dir_path)) => {
+                        let mut files = Vec::new();
+                        for file_to_add in archive.files(dir_path.clone()) {
+                            match file_to_add {
+                                Ok(f) => files.push(f.clone()),
+                                Err(e) => errors.push((
+                                    io::Error::new(io::ErrorKind::Other, e.to_string()),
+                                    Some(egg.file.path().clone()),
+                                )),
+                            }
+                        }
 
-                    for (error, path) in errors {
-                        rows.push(self.render_error(
-                            &error,
-                            TreeParams::new(depth.deeper(), false),
-                            path,
-                        ));
+                        self.filter.filter_child_files(&mut files);
+
+                        if !files.is_empty() {
+                            self.add_xattrs_row(rows, egg.xattrs, depth.deeper());
+                            self.add_error_rows(rows, &errors, depth.deeper());
+
+                            self.add_files_to_table(
+                                table,
+                                rows,
+                                None,
+                                &files,
+                                depth.deeper(),
+                                color_scale_info,
+                            );
+                            continue;
+                        }
                     }
-
-                    self.add_files_to_table(table, rows, &files, depth.deeper(), color_scale_info);
-                    continue;
                 }
             }
 

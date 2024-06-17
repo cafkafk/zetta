@@ -1,9 +1,9 @@
 use nu_ansi_term::Style;
 
-use crate::fs::File;
+use crate::fs::{ArchiveEntry, File, Filelike};
 use crate::info::filetype::FileType;
 use crate::output::color_scale::ColorScaleOptions;
-use crate::output::file_name::Colours as FileNameColours;
+use crate::output::file_name::{Colours as FileNameColours, GetStyle};
 use crate::output::render;
 
 mod ui_styles;
@@ -137,6 +137,7 @@ pub trait FileStyle: Sync {
     /// Return the style to paint the filename text for `file` from the given
     /// `theme`.
     fn get_style(&self, file: &File<'_>, theme: &Theme) -> Option<Style>;
+    fn get_style_for_archive(&self, file: &ArchiveEntry, theme: &Theme) -> Option<Style>;
 }
 
 #[derive(PartialEq, Debug)]
@@ -144,6 +145,9 @@ struct NoFileStyle;
 
 impl FileStyle for NoFileStyle {
     fn get_style(&self, _file: &File<'_>, _theme: &Theme) -> Option<Style> {
+        None
+    }
+    fn get_style_for_archive(&self, _file: &ArchiveEntry, _theme: &Theme) -> Option<Style> {
         None
     }
 }
@@ -161,6 +165,11 @@ where
         self.0
             .get_style(file, theme)
             .or_else(|| self.1.get_style(file, theme))
+    }
+    fn get_style_for_archive(&self, file: &ArchiveEntry, theme: &Theme) -> Option<Style> {
+        self.0
+            .get_style_for_archive(file, theme)
+            .or_else(|| self.1.get_style_for_archive(file, theme))
     }
 }
 
@@ -190,6 +199,13 @@ impl FileStyle for ExtensionMappings {
             .find(|t| t.0.matches(&file.name))
             .map(|t| t.1)
     }
+    fn get_style_for_archive(&self, file: &ArchiveEntry, _theme: &Theme) -> Option<Style> {
+        self.mappings
+            .iter()
+            .rev()
+            .find(|t| t.0.matches(file.name()))
+            .map(|t| t.1)
+    }
 }
 
 #[derive(Debug)]
@@ -197,6 +213,23 @@ struct FileTypes;
 
 impl FileStyle for FileTypes {
     fn get_style(&self, file: &File<'_>, theme: &Theme) -> Option<Style> {
+        #[rustfmt::skip]
+        return match FileType::get_file_type(file) {
+            Some(FileType::Image)      => Some(theme.ui.file_type.image),
+            Some(FileType::Video)      => Some(theme.ui.file_type.video),
+            Some(FileType::Music)      => Some(theme.ui.file_type.music),
+            Some(FileType::Lossless)   => Some(theme.ui.file_type.lossless),
+            Some(FileType::Crypto)     => Some(theme.ui.file_type.crypto),
+            Some(FileType::Document)   => Some(theme.ui.file_type.document),
+            Some(FileType::Compressed) => Some(theme.ui.file_type.compressed),
+            Some(FileType::Temp)       => Some(theme.ui.file_type.temp),
+            Some(FileType::Compiled)   => Some(theme.ui.file_type.compiled),
+            Some(FileType::Build)      => Some(theme.ui.file_type.build),
+            Some(FileType::Source)     => Some(theme.ui.file_type.source),
+            None                       => None
+        };
+    }
+    fn get_style_for_archive(&self, file: &ArchiveEntry, theme: &Theme) -> Option<Style> {
         #[rustfmt::skip]
         return match FileType::get_file_type(file) {
             Some(FileType::Image)      => Some(theme.ui.file_type.image),
@@ -372,10 +405,8 @@ impl FileNameColours for Theme {
     fn executable_file(&self)     -> Style { self.ui.filekinds.executable }
     fn mount_point(&self)         -> Style { self.ui.filekinds.mount_point }
 
-    fn colour_file(&self, file: &File<'_>) -> Style {
-        self.exts
-            .get_style(file, self)
-            .unwrap_or(self.ui.filekinds.normal)
+    fn colour_file<F: Filelike + GetStyle>(&self, file: &F) -> Style {
+        file.get_style(self)
     }
 }
 

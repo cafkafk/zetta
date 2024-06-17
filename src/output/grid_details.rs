@@ -8,11 +8,11 @@ use term_grid as grid;
 
 use crate::fs::feature::git::GitCache;
 use crate::fs::filter::FileFilter;
-use crate::fs::{Dir, File};
+use crate::fs::{File, Filelike};
 use crate::output::cell::TextCell;
 use crate::output::color_scale::ColorScaleInformation;
 use crate::output::details::{Options as DetailsOptions, Render as DetailsRender};
-use crate::output::file_name::Options as FileStyle;
+use crate::output::file_name::{GetStyle, Options as FileStyle};
 use crate::output::table::{Options as TableOptions, Table};
 use crate::theme::Theme;
 
@@ -45,14 +45,14 @@ pub enum RowThreshold {
     AlwaysGrid,
 }
 
-pub struct Render<'a> {
+pub struct Render<'a, F: Filelike> {
     /// The directory that’s being rendered here.
     /// We need this to know which columns to put in the output.
-    pub dir: Option<&'a Dir>,
+    pub dir_path: Option<&'a std::path::PathBuf>,
 
     /// The files that have been read from the directory. They should all
     /// hold a reference to it.
-    pub files: Vec<File<'a>>,
+    pub files: Vec<F>,
 
     /// How to colour various pieces of text.
     pub theme: &'a Theme,
@@ -82,17 +82,17 @@ pub struct Render<'a> {
     pub git_repos: bool,
 }
 
-impl<'a> Render<'a> {
+impl<'a, F: Filelike + GetStyle + std::marker::Sync> Render<'a, F> {
     /// Create a temporary Details render that gets used for the columns of
     /// the grid-details render that’s being generated.
     ///
     /// This includes an empty files vector because the files get added to
     /// the table in *this* file, not in details: we only want to insert every
     /// *n* files into each column’s table, not all of them.
-    fn details_for_column(&self) -> DetailsRender<'a> {
+    fn details_for_column(&self) -> DetailsRender<'a, File<'a>> {
         #[rustfmt::skip]
         return DetailsRender {
-            dir:           self.dir,
+            dir_path:      self.dir_path,
             files:         Vec::new(),
             theme:         self.theme,
             file_style:    self.file_style,
@@ -199,14 +199,14 @@ impl<'a> Render<'a> {
     }
 
     fn make_table(&mut self, options: &'a TableOptions) -> Table<'a> {
-        match (self.git, self.dir) {
+        match (self.git, self.dir_path) {
             (Some(g), Some(d)) => {
-                if !g.has_anything_for(&d.path) {
+                if !g.has_anything_for(d) {
                     self.git = None;
                 }
             }
             (Some(g), None) => {
-                if !self.files.iter().any(|f| g.has_anything_for(&f.path)) {
+                if !self.files.iter().any(|f| g.has_anything_for(f.path())) {
                     self.git = None;
                 }
             }
