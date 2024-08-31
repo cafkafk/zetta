@@ -35,7 +35,7 @@ export extern "eza" [
     --binary(-b)               # List file sizes with binary prefixes
     --bytes(-B)                # List file sizes in bytes, without any prefixes
     --group(-g)                # List each file's group
-    --header(-h)               # Add a header row to each column
+    --header(-h)               # When to add a header row to each column
     --links(-H)                # List each file's number of hard links
     --inode(-i)                # List each file's inode number
     --blocksize(-S)            # List each file's size of allocated file system blocks

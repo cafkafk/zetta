@@ -1,2 +1,2 @@
-thread 'main' panicked at 'Custom timestamp format is empty, please supply a chrono format string after the plus sign.', src/options/view.rs:345:47
+thread 'main' panicked at 'Custom timestamp format is empty, please supply a chrono format string after the plus sign.', src/options/view.rs:365:47
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

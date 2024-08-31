@@ -191,8 +191,11 @@ These options are available when running with `--long` (`-l`):
 `--smart-group`
 : Only show group if it has a different name from owner
 
-`-h`, `--header`
+`-h WHEN`, `--header=WHEN`
 : Add a header row to each column.
+
+Valid settings are ‘`always`’, ‘`automatic`’ (‘`auto`’ for short), and ‘`never`’.
+The default value is ‘`automatic`’.
 
 `-H`, `--links`
 : List each file’s number of hard links.

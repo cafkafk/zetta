@@ -269,7 +269,7 @@ gen_test_dir:
 
     nix build -L ./#trydump
 
-    find result/dump -type f \( -name "*.stdout" -o -name "*.stderr" \) -exec sh -c 'base=$(basename {}); if [ -e "tests/gen/${base%.*}.toml" ]; then cp {} tests/gen/; elif [ -e "tests/cmd/${base%.*}.toml" ]; then cp {} tests/cmd/; elif [ -e "tests/ptests/${base%.*}.toml" ]; then cp {} tests/ptests/; fi' \;
+    find result/dump -type f \( -name "*.stdout" -o -name "*.stderr" \) -exec sh -c 'base=$(basename {}); if [ -e "tests/gen/${base%.*}.toml" ]; then cp {} tests/gen/; elif [ -e "tests/ptests/${base%.*}.toml" ]; then cp {} tests/ptests/; fi' \;
 
 
 @itest-gen:

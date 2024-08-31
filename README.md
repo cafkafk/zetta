@@ -128,7 +128,7 @@ These options are available when running with `--long` (`-l`):
 - **-b**, **--binary**: list file sizes with binary prefixes
 - **-B**, **--bytes**: list file sizes in bytes, without any prefixes
 - **-g**, **--group**: list each file’s group
-- **-h**, **--header**: add a header row to each column
+- **-h when**, **--header=(when)**: when to add a header row to each column (always, auto, never)
 - **-H**, **--links**: list each file’s number of hard links
 - **-i**, **--inode**: list each file’s inode number
 - **-m**, **--modified**: use the modified timestamp field

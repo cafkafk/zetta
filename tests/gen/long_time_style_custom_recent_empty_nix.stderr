@@ -1,2 +1,2 @@
-thread 'main' panicked at 'Custom timestamp format for recent files is empty, please supply a chrono format string at the second line.', src/options/view.rs:361:25
+thread 'main' panicked at 'Custom timestamp format for recent files is empty, please supply a chrono format string at the second line.', src/options/view.rs:381:25
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace

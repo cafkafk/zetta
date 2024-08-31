@@ -45,7 +45,7 @@ __eza() {
         {-B,--bytes}"[List file sizes in bytes, without any prefixes]" \
         --changed"[Use the changed timestamp field]" \
         {-g,--group}"[List each file's group]" \
-        {-h,--header}"[Add a header row to each column]" \
+        {-h,--header}"[When to use header]:(when):(always auto automatic never)" \
         {-H,--links}"[List each file's number of hard links]" \
         {-i,--inode}"[List each file's inode number]" \
         {-m,--modified}"[Use the modified timestamp field]" \
