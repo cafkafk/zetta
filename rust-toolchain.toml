@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2024 Christina Sørensen
 # SPDX-License-Identifier: EUPL-1.2
 [toolchain]
-channel = "1.70"
+channel = "1.80"
 components = [
   "rustfmt",
   "rustc",

@@ -12,7 +12,7 @@ use std::sync::{Mutex, MutexGuard};
 use chrono::prelude::*;
 
 use log::*;
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 #[cfg(unix)]
 use uzers::UsersCache;
 
@@ -398,7 +398,7 @@ impl Environment {
     }
 }
 
-static ENVIRONMENT: Lazy<Environment> = Lazy::new(Environment::load_all);
+static ENVIRONMENT: LazyLock<Environment> = LazyLock::new(Environment::load_all);
 
 pub struct Table<'a> {
     columns: Vec<Column>,

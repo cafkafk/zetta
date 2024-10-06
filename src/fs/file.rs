@@ -25,7 +25,7 @@ use chrono::prelude::*;
 
 use log::*;
 #[cfg(unix)]
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 
 use crate::fs::dir::Dir;
 use crate::fs::feature::xattr;
@@ -40,11 +40,10 @@ use super::mounts::MountedFs;
 // Maps (device_id, inode) => (size_in_bytes, size_in_blocks)
 // Mutex::new is const but HashMap::new is not const requiring us to use lazy
 // initialization.
-// TODO: Replace with std::sync::LazyLock when it is stable.
 #[allow(clippy::type_complexity)]
 #[cfg(unix)]
-static DIRECTORY_SIZE_CACHE: Lazy<Mutex<HashMap<(u64, u64), (u64, u64)>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
+static DIRECTORY_SIZE_CACHE: LazyLock<Mutex<HashMap<(u64, u64), (u64, u64)>>> =
+    LazyLock::new(|| Mutex::new(HashMap::new()));
 
 /// A **File** is a wrapper around one of Rust’s `PathBuf` values, along with
 /// associated data about the file.
