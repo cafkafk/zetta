@@ -28,7 +28,6 @@ const ABSOLUTE_MODES: &[&str] = &["on", "follow", "off"];
 
 pub static COLOR:  Arg = Arg { short: None, long: "color",  takes_value: TakesValue::Optional(Some(WHEN), "auto") };
 pub static COLOUR: Arg = Arg { short: None, long: "colour", takes_value: TakesValue::Optional(Some(WHEN), "auto") };
-const WHEN: &[&str] = &["always", "auto", "never"];
 
 pub static COLOR_SCALE:  Arg = Arg { short: None, long: "color-scale",  takes_value: TakesValue::Optional(Some(SCALES), "all") };
 pub static COLOUR_SCALE: Arg = Arg { short: None, long: "colour-scale", takes_value: TakesValue::Optional(Some(SCALES), "all") };
@@ -52,9 +51,6 @@ pub static ONLY_DIRS:   Arg = Arg { short: Some(b'D'), long: "only-dirs", takes_
 pub static ONLY_FILES:  Arg = Arg { short: Some(b'f'), long: "only-files", takes_value: TakesValue::Forbidden };
 pub static NO_SYMLINKS: Arg = Arg { short: None,       long: "no-symlinks", takes_value: TakesValue::Forbidden };
 pub static SHOW_SYMLINKS: Arg = Arg { short: None,     long: "show-symlinks", takes_value: TakesValue::Forbidden };
-const SORTS: Values = &[ "name", "Name", "size", "extension",
-                         "Extension", "modified", "changed", "accessed",
-                         "created", "inode", "type", "none" ];
 
 // display options
 pub static BINARY:      Arg = Arg { short: Some(b'b'), long: "binary",      takes_value: TakesValue::Forbidden };
@@ -104,7 +100,7 @@ pub static ALL_ARGS: Args = Args(&[
 
     &ONE_LINE, &LONG, &GRID, &ACROSS, &RECURSE, &TREE, &CLASSIFY, &DEREF_LINKS, &FOLLOW_LINKS,
     &COLOR, &COLOUR, &COLOR_SCALE, &COLOUR_SCALE, &COLOR_SCALE_MODE, &COLOUR_SCALE_MODE,
-    &WIDTH, &NO_QUOTES, &ABSOLUTE, &QUOTES,
+    &WIDTH, &ABSOLUTE, &QUOTES,
 
     &ALL, &ALMOST_ALL, &LIST_DIRS, &LEVEL, &REVERSE, &SORT, &DIRS_FIRST, &DIRS_LAST,
     &IGNORE_GLOB, &GIT_IGNORE, &ONLY_DIRS, &ONLY_FILES,
