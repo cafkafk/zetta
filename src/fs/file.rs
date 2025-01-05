@@ -8,6 +8,10 @@
 
 #[cfg(unix)]
 use std::collections::HashMap;
+#[cfg(windows)]
+use std::collections::HashSet;
+#[cfg(windows)]
+use std::env;
 use std::fs::FileType;
 use std::io;
 #[cfg(unix)]
@@ -25,7 +29,6 @@ use std::time::SystemTime;
 use chrono::prelude::*;
 
 use log::*;
-#[cfg(unix)]
 use once_cell::sync::Lazy;
 
 use crate::fs::dir::Dir;
@@ -331,16 +334,33 @@ impl<'dir> File<'dir> {
     /// Whether this file is both a regular file *and* executable for the
     /// current user. An executable file has a different purpose from an
     /// executable directory, so they should be highlighted differently.
-    #[cfg(unix)]
     pub fn is_executable_file(&self) -> bool {
-        let bit = modes::USER_EXECUTE;
-        if !self.is_file() {
-            return false;
+        #[cfg(unix)]
+        {
+            let bit = modes::USER_EXECUTE;
+            if !self.is_file() {
+                return false;
+            }
+            let Ok(md) = self.metadata() else {
+                return false;
+            };
+            (md.permissions().mode() & bit) == bit
         }
-        let Ok(md) = self.metadata() else {
-            return false;
-        };
-        (md.permissions().mode() & bit) == bit
+        #[cfg(windows)]
+        {
+            let Some(ext) = self.ext.as_ref() else {
+                return false;
+            };
+
+            static PATHEXT: Lazy<HashSet<String>> = Lazy::new(|| {
+                env::var("PATHEXT")
+                    .unwrap_or_default()
+                    .split(';')
+                    .map(|s| s[1..].to_string())
+                    .collect::<HashSet<String>>()
+            });
+            PATHEXT.contains(&ext.to_uppercase())
+        }
     }
 
     /// Whether this file is a symlink on the filesystem.
