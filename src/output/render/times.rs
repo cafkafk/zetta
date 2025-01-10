@@ -20,7 +20,7 @@ impl Render for Option<NaiveDateTime> {
         let datestamp = if let Ok(timezone_str) = iana_time_zone::get_timezone() {
             let timezone: Tz = timezone_str
                 .parse()
-                .unwrap_or_else(|_| panic!("The timezone cannot be parsed: {}", timezone_str));
+                .unwrap_or_else(|_| panic!("The timezone cannot be parsed: {timezone_str}"));
             if let Some(time) = self {
                 let time_offset = timezone.offset_from_utc_datetime(&time).fix();
                 time_format.format(&DateTime::<FixedOffset>::from_naive_utc_and_offset(

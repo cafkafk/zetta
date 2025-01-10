@@ -165,7 +165,7 @@ pub struct FileName<'a, 'dir, C> {
     mount_style: MountStyle,
 }
 
-impl<'a, 'dir, C> FileName<'a, 'dir, C> {
+impl<C> FileName<'_, '_, C> {
     /// Sets the flag on this file name to display link targets with an
     /// arrow followed by their path.
     pub fn with_link_paths(mut self) -> Self {
@@ -187,7 +187,7 @@ impl<'a, 'dir, C> FileName<'a, 'dir, C> {
     }
 }
 
-impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
+impl<C: Colours> FileName<'_, '_, C> {
     /// Paints the name of the file using the colours, resulting in a vector
     /// of coloured cells that can be printed to the terminal.
     ///

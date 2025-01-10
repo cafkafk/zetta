@@ -108,7 +108,7 @@ pub struct Files<'dir, 'ig> {
     total_size: bool,
 }
 
-impl<'dir, 'ig> Files<'dir, 'ig> {
+impl<'dir> Files<'dir, '_> {
     fn parent(&self) -> PathBuf {
         // We can’t use `Path#parent` here because all it does is remove the
         // last path component, which is no good for us if the path is
@@ -180,7 +180,7 @@ enum DotsNext {
     Files,
 }
 
-impl<'dir, 'ig> Iterator for Files<'dir, 'ig> {
+impl<'dir> Iterator for Files<'dir, '_> {
     type Item = File<'dir>;
 
     fn next(&mut self) -> Option<Self::Item> {
