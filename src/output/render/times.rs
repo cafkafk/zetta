@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 // SPDX-FileCopyrightText: 2024 Christina Sørensen
 // SPDX-License-Identifier: EUPL-1.2
 //
@@ -15,12 +17,23 @@ pub trait Render {
     fn render(self, style: Style, time_format: TimeFormat) -> TextCell;
 }
 
+// Assume that the timezone is constant for the duration of the program.
+static INITIAL_TIMEZONE: OnceLock<Option<Tz>> = OnceLock::new();
+
+fn initialize_timezone() -> Option<Tz> {
+    let timezone_str = iana_time_zone::get_timezone();
+    timezone_str.map_or(None, |tz_str| {
+        Some(
+            tz_str
+                .parse()
+                .unwrap_or_else(|_| panic!("The timezone cannot be parsed: {tz_str}")),
+        )
+    })
+}
+
 impl Render for Option<NaiveDateTime> {
     fn render(self, style: Style, time_format: TimeFormat) -> TextCell {
-        let datestamp = if let Ok(timezone_str) = iana_time_zone::get_timezone() {
-            let timezone: Tz = timezone_str
-                .parse()
-                .unwrap_or_else(|_| panic!("The timezone cannot be parsed: {timezone_str}"));
+        let datestamp = if let Some(timezone) = INITIAL_TIMEZONE.get_or_init(initialize_timezone) {
             if let Some(time) = self {
                 let time_offset = timezone.offset_from_utc_datetime(&time).fix();
                 time_format.format(&DateTime::<FixedOffset>::from_naive_utc_and_offset(
