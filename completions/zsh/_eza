@@ -25,7 +25,7 @@ __eza() {
         --colo{,u}r-scale-mode"[Use gradient or fixed colors in --color-scale]:(mode):(fixed gradient)" \
         --icons="[When to display icons]:(when):(always auto automatic never)" \
         --no-quotes"[Don't quote filenames with spaces]" \
-        --hyperlink"[Display entries as hyperlinks]" \
+        --hyperlink="[Display entries as hyperlinks]:(when):(always auto automatic never)" \
         --absolute"[Display entries with their absolute path]:(mode):(on follow off)" \
         --follow-symlinks"[Drill down into symbolic links that point to directories]" \
         --group-directories-first"[Sort directories before other files]" \
