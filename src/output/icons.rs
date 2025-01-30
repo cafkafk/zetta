@@ -242,6 +242,7 @@ const FILENAME_ICONS: Map<&'static str, char> = phf_map! {
     ".npmignore"          => Icons::NPM,            // 
     ".npmrc"              => Icons::NPM,            // 
     ".pre-commit-config.yaml" => '\u{f06e2}',       // 󰛢
+    ".prettierignore"     => '\u{e6b4}',            // 
     ".prettierrc"         => '\u{e6b4}',            // 
     ".parentlock"         => Icons::LOCK,           // 
     ".profile"            => Icons::SHELL,          // 󱆃
