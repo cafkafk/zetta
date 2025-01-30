@@ -270,6 +270,7 @@ pub struct FileKindsOverride {
     pub special: Option<StyleOverride>,       // sp
     pub executable: Option<StyleOverride>,    // ex
     pub mount_point: Option<StyleOverride>,   // mp
+    pub btrfs_subvol: Option<StyleOverride>,  // sv
 }
 
 impl FromOverride<FileKindsOverride> for FileKinds {
@@ -285,6 +286,7 @@ impl FromOverride<FileKindsOverride> for FileKinds {
             special: FromOverride::from(value.special, default.special),
             executable: FromOverride::from(value.executable, default.executable),
             mount_point: FromOverride::from(value.mount_point, default.mount_point),
+            btrfs_subvol: FromOverride::from(value.btrfs_subvol, default.btrfs_subvol),
         }
     }
 }
