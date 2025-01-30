@@ -655,6 +655,7 @@ const EXTENSION_ICONS: Map<&'static str, char> = phf_map! {
     "hex"            => '\u{f12a7}',             // 󱊧
     "hh"             => Icons::LANG_CPP,         // 
     "hpp"            => Icons::LANG_CPP,         // 
+    "hrl"            => '\u{e7b1}',              // 
     "hs"             => Icons::LANG_HASKELL,     // 
     "htm"            => Icons::HTML5,            // 
     "html"           => Icons::HTML5,            // 
