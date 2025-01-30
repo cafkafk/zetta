@@ -41,7 +41,7 @@ __eza() {
         {-L,--level}"+[Limit the depth of recursion]" \
         {-w,--width}"+[Limits column output of grid, 0 implies auto-width]" \
         {-r,--reverse}"[Reverse the sort order]" \
-        {-s,--sort}="[Which field to sort by]:(sort field):(accessed age changed created date extension Extension filename Filename inode modified oldest name Name newest none size time type)" \
+        {-s,--sort}="[Which field to sort by]:(sort field):(accessed age changed created date extension Extension filename Filename inode modified oldest name Name newest none size blocks time type)" \
         {-I,--ignore-glob}"[Ignore files that match these glob patterns]" \
         {-b,--binary}"[List file sizes with binary prefixes]" \
         {-B,--bytes}"[List file sizes in bytes, without any prefixes]" \

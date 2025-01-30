@@ -177,6 +177,10 @@ pub enum SortField {
     /// The file’s size, in bytes.
     Size,
 
+    /// The file’s block size, in bytes.
+    #[cfg(unix)]
+    BlockSize,
+
     /// The file’s inode, which usually corresponds to the order in which
     /// files were created on the filesystem, more or less.
     #[cfg(unix)]
@@ -272,6 +276,8 @@ impl SortField {
             Self::Name(AaBbCc)  => natord::compare_ignore_case(&a.name, &b.name),
 
             Self::Size          => a.length().cmp(&b.length()),
+            #[cfg(unix)]
+            Self::BlockSize     => a.blocksize().bytes().cmp(&b.blocksize().bytes()),
 
             #[cfg(unix)]
             Self::FileInode     => {
