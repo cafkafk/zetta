@@ -303,6 +303,7 @@ const FILENAME_ICONS: Map<&'static str, char> = phf_map! {
     "compose.yaml"        => Icons::DOCKER,         // 
     "compose.yml"         => Icons::DOCKER,         // 
     "docker-compose.yaml" => Icons::DOCKER,         // 
+    "dropbox"             => '\u{e707}',            // 
     "dune"                => Icons::LANG_OCAML,     // 
     "dune-project"        => Icons::WRENCH,         // 
     "Earthfile"           => '\u{f0ac}',            // 
