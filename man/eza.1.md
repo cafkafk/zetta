@@ -113,8 +113,13 @@ The default value is ‘`automatic`’.
 `--no-quotes`
 : Don't quote file names with spaces.
 
-`--hyperlink`
+`--hyperlink=WHEN`
 : Display entries as hyperlinks
+
+Valid settings are ‘`always`’, ‘`automatic`’ (‘`auto`’ for short), and ‘`never`’.
+The default value is ‘`automatic`’.
+
+`automatic` or `auto` will embed hyperlinks only when the standard output is connected to a real terminal. If `eza` is ran while in a `tty`, or the output of `eza` is either redirected to a file or piped into another program, hyperlinks will not be embedded. Setting this option to ‘`always`’ causes `eza` to always embed hyperlinks, while ‘`never`’ disables the use of hyperlinks.
 
 `-w`, `--width=COLS`
 : Set screen width in columns.
@@ -340,7 +345,7 @@ Specifies the minimum luminance to use when color-scale is active. It's value ca
 
 If set, automates the same behavior as using `--icons` or `--icons=auto`. Useful for if you always want to have icons enabled.
 
-Any explicit use of the `--icons=WHEN` flag overrides this behavior. 
+Any explicit use of the `--icons=WHEN` flag overrides this behavior.
 
 ## `EZA_STDIN_SEPARATOR`
 

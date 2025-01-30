@@ -97,7 +97,7 @@ eza’s options are almost, but not quite, entirely unlike `ls`’s. Quick overv
 - **--colo[u]r-scale=(field)**: highlight levels of `field` distinctly(all, age, size)
 - **--color-scale-mode=(mode)**: use gradient or fixed colors in --color-scale. valid options are `fixed` or `gradient`
 - **--icons=(when)**: when to display icons (always, auto, never)
-- **--hyperlink**: display entries as hyperlinks
+- **--hyperlink=(when)**: display entries as hyperlinks (always, auto, never)
 - **--absolute=(mode)**: display entries with their absolute path (on, follow, off)
 - **-w**, **--width=(columns)**: set screen width in columns
 
