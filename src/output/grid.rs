@@ -37,7 +37,7 @@ pub struct Render<'a> {
     pub filter: &'a FileFilter,
 }
 
-impl<'a> Render<'a> {
+impl Render<'_> {
     pub fn render<W: Write>(mut self, w: &mut W) -> io::Result<()> {
         self.filter.sort_files(&mut self.files);
 

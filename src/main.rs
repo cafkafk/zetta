@@ -248,7 +248,7 @@ fn git_repos(options: &Options, args: &[&OsStr]) -> bool {
     }
 }
 
-impl<'args> Exa<'args> {
+impl Exa<'_> {
     /// # Errors
     ///
     /// Will return `Err` if printing to stderr fails.

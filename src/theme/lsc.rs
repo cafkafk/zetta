@@ -97,7 +97,7 @@ pub struct Pair<'var> {
     pub value: &'var str,
 }
 
-impl<'var> Pair<'var> {
+impl Pair<'_> {
     pub fn to_style(&self) -> Style {
         let mut style = Style::default();
         let mut iter = self.value.split(';').peekable();
