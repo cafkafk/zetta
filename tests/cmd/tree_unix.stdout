@@ -3,6 +3,12 @@ tests/itest
 ├── b
 ├── c
 ├── d
+├── dereferenced-sort-size
+│   ├── links
+│   │   ├── a -> ../longgggggggggggggg-name-smaller-size
+│   │   └── b -> ../short-name-larger-size
+│   ├── longgggggggggggggg-name-smaller-size
+│   └── short-name-larger-size
 ├── dir-symlink -> vagrant/debug
 ├── e
 ├── exa

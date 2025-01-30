@@ -2,6 +2,7 @@
 -a--- b
 -a--- c
 -a--- d
+d---- dereferenced-sort-size
 l---- dir-symlink -> vagrant/debug
 -a--- e
 d---- exa
