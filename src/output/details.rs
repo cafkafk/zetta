@@ -78,7 +78,7 @@ use crate::fs::dir_action::RecurseOptions;
 use crate::fs::feature::git::GitCache;
 use crate::fs::feature::xattr::Attribute;
 use crate::fs::fields::SecurityContextType;
-use crate::fs::filter::FileFilter;
+use crate::fs::filter::{FileFilter, FileFilterFlags::OnlyFiles};
 use crate::fs::{Dir, File};
 use crate::output::cell::TextCell;
 use crate::output::color_scale::{ColorScaleInformation, ColorScaleOptions};
@@ -332,27 +332,29 @@ impl<'a> Render<'a> {
             let mut files = Vec::new();
             let errors = egg.errors;
 
-            if let (Some(ref mut t), Some(row)) = (table.as_mut(), egg.table_row.as_ref()) {
-                t.add_widths(row);
+            if !(egg.file.is_directory() && self.filter.flags.contains(&OnlyFiles)) {
+                if let (Some(ref mut t), Some(row)) = (table.as_mut(), egg.table_row.as_ref()) {
+                    t.add_widths(row);
+                }
+
+                let file_name = self
+                    .file_style
+                    .for_file(egg.file, self.theme)
+                    .with_link_paths()
+                    .with_mount_details(self.opts.mounts)
+                    .paint()
+                    .promote();
+
+                debug!("file_name {:?}", file_name);
+
+                let row = Row {
+                    tree: tree_params,
+                    cells: egg.table_row,
+                    name: file_name,
+                };
+
+                rows.push(row);
             }
-
-            let file_name = self
-                .file_style
-                .for_file(egg.file, self.theme)
-                .with_link_paths()
-                .with_mount_details(self.opts.mounts)
-                .paint()
-                .promote();
-
-            debug!("file_name {:?}", file_name);
-
-            let row = Row {
-                tree: tree_params,
-                cells: egg.table_row,
-                name: file_name,
-            };
-
-            rows.push(row);
 
             if let Some(ref dir) = egg.dir {
                 for file_to_add in dir.files(
