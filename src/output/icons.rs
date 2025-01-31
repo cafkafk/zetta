@@ -211,6 +211,7 @@ const FILENAME_ICONS: Map<&'static str, char> = phf_map! {
     ".editorconfig"       => '\u{e652}',            // 
     ".emacs"              => Icons::EMACS,          // 
     ".envrc"              => '\u{f462}',            // 
+    ".eslintignore"       => Icons::ESLINT,         // 
     ".eslintrc.cjs"       => Icons::ESLINT,         // 
     ".eslintrc.js"        => Icons::ESLINT,         // 
     ".eslintrc.json"      => Icons::ESLINT,         // 
