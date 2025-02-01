@@ -18,6 +18,8 @@ use crate::output::table::{
 use crate::output::time::TimeFormat;
 use crate::output::{details, grid, Mode, TerminalWidth, View};
 
+use chrono::format::{Item, StrftimeItems};
+
 impl View {
     pub fn deduce<V: Vars>(matches: &MatchedFlags<'_>, vars: &V) -> Result<Self, OptionsError> {
         let mode = Mode::deduce(matches, vars)?;
@@ -344,35 +346,41 @@ impl TimeFormat {
             "long-iso" => Ok(Self::LongISO),
             "full-iso" => Ok(Self::FullISO),
             fmt if fmt.starts_with('+') => {
+                // chrono will later panic if we try to print a DateTime with a
+                // bad format string, so this triggers that same logic to catch
+                // it early.
+                fn validate_format(format: &str) -> Result<String, OptionsError> {
+                    for item in StrftimeItems::new(format) {
+                        if matches!(item, Item::Error) {
+                            return Err(OptionsError::Unsupported(format!(
+                                "Invalid custom timestamp format \"{format}\", \
+                                    please supply a valid chrono format string \
+                                    after the plus sign."
+                            )));
+                        }
+                    }
+
+                    Ok(format.to_owned())
+                }
+
                 let mut lines = fmt[1..].lines();
 
                 // line 1 will be None when:
                 //   - there is nothing after `+`
                 // line 1 will be empty when:
                 //   - `+` is followed immediately by `\n`
-                let empty_non_recent_format_msg = "Custom timestamp format is empty, \
-                    please supply a chrono format string after the plus sign.";
-                let non_recent = lines.next().expect(empty_non_recent_format_msg);
-                let non_recent = if non_recent.is_empty() {
-                    panic!("{}", empty_non_recent_format_msg)
-                } else {
-                    non_recent.to_owned()
-                };
+                let non_recent = validate_format(lines.next().unwrap_or_default())?;
 
                 // line 2 will be None when:
                 //   - there is not a single `\n`
                 //   - there is nothing after the first `\n`
                 // line 2 will be empty when:
                 //   - there exist at least 2 `\n`, and no content between the 1st and 2nd `\n`
-                let empty_recent_format_msg = "Custom timestamp format for recent files is empty, \
-                    please supply a chrono format string at the second line.";
-                let recent = lines.next().map(|rec| {
-                    if rec.is_empty() {
-                        panic!("{}", empty_recent_format_msg)
-                    } else {
-                        rec.to_owned()
-                    }
-                });
+                let recent = if let Some(f) = lines.next() {
+                    Some(validate_format(f)?)
+                } else {
+                    None
+                };
 
                 Ok(Self::Custom { non_recent, recent })
             }
