@@ -759,6 +759,7 @@ const EXTENSION_ICONS: Map<&'static str, char> = phf_map! {
     "md"             => Icons::MARKDOWN,         // 
     "md5"            => Icons::SHIELD_CHECK,     // 󰕥
     "mdb"            => Icons::DATABASE,         // 
+    "mdx"            => Icons::MARKDOWN,         // 
     "mid"            => '\u{f08f2}',             // 󰣲
     "mjs"            => Icons::LANG_JAVASCRIPT,  // 
     "mk"             => Icons::MAKE,             // 
