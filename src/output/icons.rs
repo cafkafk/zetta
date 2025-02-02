@@ -948,6 +948,7 @@ const EXTENSION_ICONS: Map<&'static str, char> = phf_map! {
     "sublime-settings"=>Icons::SUBLIME,          // 
     "sublime-snippet"=> Icons::SUBLIME,          // 
     "sublime-theme"  => Icons::SUBLIME,          // 
+    "suo"            => '\u{e70c}',              // 
     "svelte"         => '\u{e697}',              // 
     "sv"             => Icons::LANG_HDL,         // 󰍛
     "svg"            => Icons::VECTOR,           // 󰕙
