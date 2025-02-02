@@ -429,9 +429,13 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
                 #[cfg(target_os = "windows")]
                 let abs_path = abs_path.strip_prefix("\\\\?\\").unwrap_or(&abs_path);
 
-                bits.push(ANSIString::from(format!(
-                    "{HYPERLINK_START}file://{abs_path}{HYPERLINK_END}"
-                )));
+                let hyperlink = if let Ok(distro_name) = std::env::var("WSL_DISTRO_NAME") {
+                    format!("{HYPERLINK_START}file://wsl$/{distro_name}{abs_path}{HYPERLINK_END}")
+                } else {
+                    format!("{HYPERLINK_START}file://{abs_path}{HYPERLINK_END}")
+                };
+
+                bits.push(ANSIString::from(hyperlink));
 
                 display_hyperlink = true;
             }
