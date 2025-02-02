@@ -530,6 +530,7 @@ const EXTENSION_ICONS: Map<&'static str, char> = phf_map! {
     "cts"            => Icons::LANG_TYPESCRIPT,  // 
     "cu"             => '\u{e64b}',              // 
     "cue"            => Icons::PLAYLIST,         // 󰲹
+    "cuh"            => Icons::LANG_CPP,         // 
     "cxx"            => Icons::LANG_CPP,         // 
     "d"              => Icons::LANG_D,           // 
     "dart"           => '\u{e798}',              // 
