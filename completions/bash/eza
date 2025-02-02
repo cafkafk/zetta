@@ -52,6 +52,10 @@ _eza() {
             mapfile -t COMPREPLY < <(compgen -W 'on follow off --' -- "$cur")
             return
             ;;
+        --quotes)
+            mapfile -t COMPREPLY < <(compgen -W 'always auto automatic never --' -- "$cur")
+            return
+            ;;
     esac
 
     case "$cur" in
@@ -59,7 +63,7 @@ _eza() {
         --*)
             # colo[u]r isn’t parsed correctly so we filter these options out and add them by hand
             parse_help=$(eza --help | grep -oE ' (--[[:alnum:]@-]+)' | tr -d ' ' | grep -v '\--colo')
-            completions=$(echo '--color --colour --color-scale --colour-scale --color-scale-mode --colour-scale-mode' "$parse_help")
+            completions=$(echo '--color --colour --color-scale --colour-scale --color-scale-mode --colour-scale-mode --quotes' "$parse_help")
             mapfile -t COMPREPLY < <(compgen -W "$completions" -- "$cur")
             ;;
 

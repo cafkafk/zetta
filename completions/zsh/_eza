@@ -24,7 +24,7 @@ __eza() {
         --colo{,u}r-scale"[highlight levels of 'field' distinctly]:(fields):(all age size)" \
         --colo{,u}r-scale-mode"[Use gradient or fixed colors in --color-scale]:(mode):(fixed gradient)" \
         --icons="[When to display icons]:(when):(always auto automatic never)" \
-        --no-quotes"[Don't quote filenames with spaces]" \
+        --quotes="[When to quote filenames]: (when): (always auto automatic never) \
         --hyperlink"[Display entries as hyperlinks]" \
         --absolute"[Display entries with their absolute path]:(mode):(on follow off)" \
         --follow-symlinks"[Drill down into symbolic links that point to directories]" \

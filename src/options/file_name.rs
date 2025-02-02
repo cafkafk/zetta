@@ -105,10 +105,25 @@ impl ShowIcons {
 
 impl QuoteStyle {
     pub fn deduce(matches: &MatchedFlags<'_>) -> Result<Self, OptionsError> {
-        if matches.has(&flags::NO_QUOTES)? {
-            Ok(Self::NoQuotes)
+        let env = std::env::var("EZA_QUOTING_STYLE");
+        let env = env.unwrap_or_else(|_| "auto".to_string());
+        let env = match env.to_ascii_lowercase().as_str() {
+            "always" => Self::Always,
+            "never" => Self::Never,
+            _ => Self::Auto,
+        };
+        if matches.get(&flags::QUOTES)?.is_none() {
+            Ok(env)
+        } else if let Some(word) = matches.get(&flags::QUOTES)? {
+            match word.to_str() {
+                Some("always") => Ok(Self::Always),
+                Some("never") => Ok(Self::Never),
+                Some("auto" | "automatic") => Ok(Self::Auto),
+                Some(arg) => Err(OptionsError::BadArgument(&flags::QUOTES, arg.into())),
+                _ => Err(OptionsError::BadArgument(&flags::QUOTES, "auto".into())),
+            }
         } else {
-            Ok(Self::QuoteSpaces)
+            Ok(env)
         }
     }
 }
