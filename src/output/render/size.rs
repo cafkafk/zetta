@@ -89,7 +89,7 @@ impl f::Size {
                 vec![
                     csi.adjust_style(colours.size(Some(prefix)), size as f32, csi.size)
                         .paint(number),
-                    csi.adjust_style(colours.size(Some(prefix)), size as f32, csi.size)
+                    csi.adjust_style(colours.unit(Some(prefix)), size as f32, csi.size)
                         .paint(symbol),
                 ]
             } else {
