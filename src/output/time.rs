@@ -164,7 +164,7 @@ mod test {
         let max_month_width = 4;
         let month = "1\u{2F49}"; // 1月
         let padding = short_month_padding(max_month_width, month);
-        let final_str = format!("{:<width$}", month, width = padding);
+        let final_str = format!("{month:<padding$}");
         assert_eq!(max_month_width, UnicodeWidthStr::width(final_str.as_str()));
     }
 
