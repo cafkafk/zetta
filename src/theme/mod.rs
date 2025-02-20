@@ -412,6 +412,9 @@ impl FileNameColours for Theme {
     fn broken_control_char(&self) -> Style { apply_overlay(self.ui.control_char(),   self.ui.broken_path_overlay()) }
     fn executable_file(&self)     -> Style { self.ui.filekinds.unwrap_or_default().executable() }
     fn mount_point(&self)         -> Style { self.ui.filekinds.unwrap_or_default().mount_point() }
+    fn btrfs_subvol(&self) -> Style {
+        self.ui.filekinds.unwrap_or_default().btrfs_subvol()
+    }
 
     fn colour_file(&self, file: &File<'_>) -> Style {
         self.exts
@@ -643,6 +646,7 @@ mod customs_test {
     test!(exa_bo:  ls "", exa "bO=4"         =>  colours c -> { c.broken_path_overlay                   = Some(Style::default().underline()); });
 
     test!(exa_mp:  ls "", exa "mp=1;34;4"    =>  colours c -> { c.filekinds().mount_point                 = Some(Blue.bold().underline()); });
+    test!(exa_sv:  ls "", exa "sv=0;34;4"    =>  colours c -> { c.filekinds().btrfs_subvol                = Some(Blue.underline()); });
     test!(exa_sp:  ls "", exa "sp=1;35;4"    =>  colours c -> { c.filekinds().special                     = Some(Purple.bold().underline()); });
 
     test!(exa_im:  ls "", exa "im=38;5;128"  =>  colours c -> { c.file_type().image                       = Some(Fixed(128).normal()); });
