@@ -29,8 +29,8 @@ DISPLAY OPTIONS
   --colo[u]r=WHEN            when to use terminal colours (always, auto, never)
   --colo[u]r-scale           highlight levels of 'field' distinctly(all, age, size)
   --colo[u]r-scale-mode      use gradient or fixed colors in --color-scale (fixed, gradient)
-  --icons=WHEN               when to display icons (always, auto, never)
-  --no-quotes                don't quote file names with spaces
+  --icons=WHEN               when to display icons (always, auto(matic), never)
+  --quotes                   when to quote file names (always, auto(matic), never)
   --hyperlink                display entries as hyperlinks
   --absolute                 display entries with their absolute path (on, follow, off)
   --follow-symlinks          drill down into symbolic links that point to directories
