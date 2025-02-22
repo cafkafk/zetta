@@ -7,6 +7,7 @@
 //! Timestamp formatting.
 
 use chrono::prelude::*;
+use chrono::Duration as OldDuration;
 use core::cmp::max;
 use once_cell::sync::Lazy;
 use std::time::Duration;
@@ -80,7 +81,7 @@ impl TimeFormat {
 fn default(time: &DateTime<FixedOffset>) -> String {
     let month = &*LOCALE.short_month_name(time.month0() as usize);
     let month_width = short_month_padding(*MAX_MONTH_WIDTH, month);
-    let format = if time.year() == *CURRENT_YEAR {
+    let format = if is_recent(time) {
         format!("%_d {month:<month_width$} %H:%M")
     } else {
         format!("%_d {month:<month_width$}  %Y")
@@ -100,7 +101,7 @@ fn short_month_padding(max_month_width: usize, month: &str) -> usize {
 }
 
 fn iso(time: &DateTime<FixedOffset>) -> String {
-    if time.year() == *CURRENT_YEAR {
+    if is_recent(time) {
         time.format("%m-%d %H:%M").to_string()
     } else {
         time.format("%Y-%m-%d").to_string()
@@ -140,7 +141,19 @@ fn custom(time: &DateTime<FixedOffset>, non_recent_fmt: &str, recent_fmt: Option
     }
 }
 
-static CURRENT_YEAR: Lazy<i32> = Lazy::new(|| Local::now().year());
+/// A timestamp is considered to be recent if it is less than six months old,
+/// and is not dated in the future.
+///
+/// From: GNU coreutils manual
+/// [Formatting file timestamps](https://www.gnu.org/software/coreutils/manual/html_node/Formatting-file-timestamps.html)
+fn is_recent<Tz: TimeZone>(time: &DateTime<Tz>) -> bool {
+    (time <= &*CURRENT_TIME) && (CURRENT_TIME.signed_duration_since(time) < *RECENT_DURATION)
+}
+
+// six months
+// TODO: migrate to the std Duration after chrono does it
+static RECENT_DURATION: Lazy<OldDuration> = Lazy::new(|| OldDuration::days(30 * 6));
+static CURRENT_TIME: Lazy<DateTime<Local>> = Lazy::new(Local::now);
 
 static LOCALE: Lazy<locale::Time> =
     Lazy::new(|| locale::Time::load_user_locale().unwrap_or_else(|_| locale::Time::english()));
