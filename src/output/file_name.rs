@@ -291,7 +291,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
 
                         if should_add_classify_char {
                             if let Some(class) = self.classify_char(target) {
-                                bits.push(Style::default().paint(class));
+                                bits.push(self.colours.classify_char().paint(class));
                             }
                         }
                     }
@@ -317,7 +317,7 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
             }
         } else if should_add_classify_char {
             if let Some(class) = self.classify_char(self.file) {
-                bits.push(Style::default().paint(class));
+                bits.push(self.colours.classify_char().paint(class));
             }
         }
 
@@ -540,6 +540,9 @@ pub trait Colours: FiletypeColours {
 
     /// The style to paint a directory that has a filesystem mounted on it.
     fn mount_point(&self) -> Style;
+
+    /// The style to paint a file kind indicator.
+    fn classify_char(&self) -> Style;
 
     fn colour_file(&self, file: &File<'_>) -> Style;
 
