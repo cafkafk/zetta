@@ -1031,6 +1031,7 @@ const EXTENSION_ICONS: Map<&'static str, char> = phf_map! {
     "xaml"           => '\u{f0673}',             // 󰙳
     "xcf"            => Icons::GIMP,             // 
     "xci"            => '\u{F07E1}',             // 󰟡
+    "xcplayground"   => '\u{e755}',              // 
     "xhtml"          => Icons::HTML5,            // 
     "xlr"            => Icons::SHEET,            // 
     "xls"            => Icons::SHEET,            // 
