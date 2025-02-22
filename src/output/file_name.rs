@@ -427,11 +427,39 @@ impl<'a, 'dir, C: Colours> FileName<'a, 'dir, C> {
 
                 // On Windows, `std::fs::canonicalize` adds the Win32 File prefix, which we need to remove
                 #[cfg(target_os = "windows")]
-                let abs_path = abs_path.strip_prefix("\\\\?\\").unwrap_or(&abs_path);
+                let abs_path = abs_path
+                    .strip_prefix("\\\\?\\")
+                    .unwrap_or(&abs_path)
+                    .to_string();
 
-                bits.push(ANSIString::from(format!(
-                    "{HYPERLINK_START}file://{abs_path}{HYPERLINK_END}"
-                )));
+                let distro_name = std::env::var("WSL_DISTRO_NAME").ok();
+                let path = if let Some(distro_name) = distro_name {
+                    if abs_path.starts_with("/mnt/") {
+                        let parts: Vec<&str> = abs_path.split('/').collect();
+                        if parts.len() > 2
+                            && parts[2].len() == 1
+                            && parts[2].chars().next().unwrap().is_ascii_alphabetic()
+                        {
+                            let mut windows_path = format!("{}:\\", parts[2].to_uppercase());
+                            for part in &parts[3..] {
+                                if !part.is_empty() {
+                                    windows_path.push_str(part);
+                                    windows_path.push('\\');
+                                }
+                            }
+                            windows_path
+                        } else {
+                            format!("wsl$/{distro_name}{abs_path}")
+                        }
+                    } else {
+                        format!("wsl$/{distro_name}{abs_path}")
+                    }
+                } else {
+                    abs_path
+                };
+
+                let hyperlink = format!("{HYPERLINK_START}file://{path}{HYPERLINK_END}");
+                bits.push(ANSIString::from(hyperlink));
 
                 display_hyperlink = true;
             }
