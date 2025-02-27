@@ -70,6 +70,12 @@ commands:
     - --hyperlink
   :
   ? - null
+    - --hyperlink
+  : values:
+      - auto
+      - always
+      - never
+  ? - null
     - --absolute
   : values:
       - on
