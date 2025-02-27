@@ -147,7 +147,7 @@ impl Icons {
     const VIM: char             = '\u{e7c5}';  // 
     const WRENCH: char          = '\u{f0ad}';  // 
     const XML: char             = '\u{f05c0}'; // 󰗀
-    const YAML: char            = '\u{e6a8}';  // 
+    const YAML: char            = '\u{ee19}';  // 
     const YARN: char            = '\u{e6a7}';  // 
 }
 
