@@ -36,6 +36,7 @@ impl Default for UiStyles {
             special: Some(Yellow.normal()),
             executable: Some(Green.bold()),
             mount_point: Some(Blue.bold().underline()),
+            btrfs_subvol: Some(Blue.underline()),
             }),
 
             #[rustfmt::skip]

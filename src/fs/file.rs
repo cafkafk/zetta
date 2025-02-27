@@ -400,6 +400,46 @@ impl<'dir> File<'dir> {
                 .is_some_and(|p| all_mounts().contains_key(p))
     }
 
+    /// Whether the directory represents a Btrfs subvolume
+    #[cfg(target_os = "linux")]
+    pub fn is_btrfs_subvolume(&self) -> bool {
+        // Listing all subvolumes with ioctl(BTRFS_IOC_TREE_SEARCH) requires CAP_SYS_ADMIN, normal users can't do that.
+        // So we test the inode number, directory representing a subvolume has always inode number 256
+        const BTRFS_FIRST_FREE_OBJECTID: u64 = 256;
+
+        self.is_directory()
+            && self.inode().0 == BTRFS_FIRST_FREE_OBJECTID
+            && self.is_btrfs().unwrap_or(false)
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    pub fn is_btrfs_subvolume(&self) -> bool {
+        false
+    }
+
+    #[cfg(target_os = "linux")]
+    fn is_btrfs(&self) -> io::Result<bool> {
+        use std::os::unix::ffi::OsStrExt;
+
+        const BTRFS_FSTYPE_NAME: &str = "btrfs";
+
+        for part in self.absolute_path().unwrap_or(&self.path).ancestors() {
+            if let Some(mount) = all_mounts().get(part) {
+                return Ok(mount.fstype == BTRFS_FSTYPE_NAME);
+            }
+        }
+
+        // /proc/mounts not working? fallback to statfs
+        let file_path = &self.path;
+        let mut out = std::mem::MaybeUninit::<libc::statfs>::uninit();
+        let path = std::ffi::CString::new(file_path.as_os_str().as_bytes()).unwrap();
+        match unsafe { libc::statfs(path.as_ptr(), out.as_mut_ptr()) } {
+            0 => Ok(unsafe { out.assume_init() }.f_type == libc::BTRFS_SUPER_MAGIC),
+            _ => Err(io::Error::last_os_error()),
+            // eprintln!("eza: statfs {:?}: {}", self.path, os_err);
+        }
+    }
+
     /// The filesystem device and type for a mount point
     pub fn mount_point_info(&self) -> Option<&MountedFs> {
         if cfg!(any(target_os = "linux", target_os = "macos")) {

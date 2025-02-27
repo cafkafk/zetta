@@ -125,6 +125,7 @@ pub struct FileKinds {
     pub special: Option<Style>,       // sp
     pub executable: Option<Style>,    // ex
     pub mount_point: Option<Style>,   // mp
+    pub btrfs_subvol: Option<Style>,  // sv
 }
 
 impl Default for FileKinds {
@@ -140,6 +141,7 @@ impl Default for FileKinds {
             special: Some(Yellow.normal()),
             executable: Some(Green.bold()),
             mount_point: Some(Blue.bold().underline()),
+            btrfs_subvol: Some(Blue.underline()),
         }
     }
 }
@@ -154,7 +156,8 @@ field_accessors!(
     socket: Option<Style>,
     special: Option<Style>,
     executable: Option<Style>,
-    mount_point: Option<Style>
+    mount_point: Option<Style>,
+    btrfs_subvol: Option<Style>
 );
 
 #[rustfmt::skip]
@@ -398,6 +401,7 @@ impl UiStyles {
             special: Some(Style::default()),
             executable: Some(Style::default()),
             mount_point: Some(Style::default()),
+            btrfs_subvol: Some(Style::default()),
             }),
 
             #[rustfmt::skip]
@@ -597,6 +601,7 @@ impl UiStyles {
             "bO" => self.broken_path_overlay             = Some(pair.to_style()),
 
             "mp" => self.filekinds().mount_point          = Some(pair.to_style()),
+            "sv" => self.filekinds().btrfs_subvol         = Some(pair.to_style()),
             "sp" => self.filekinds().special              = Some(pair.to_style()),  // Catch-all for unrecognized file kind
 
             "im" => self.file_type().image                = Some(pair.to_style()),
