@@ -218,6 +218,7 @@ const FILENAME_ICONS: Map<&'static str, char> = phf_map! {
     ".eslintrc.yaml"      => Icons::ESLINT,         // 
     ".eslintrc.yml"       => Icons::ESLINT,         // 
     ".fennelrc"           => Icons::CONFIG,         // 
+    ".gcloudignore"       => '\u{f11f6}',           // 󱇶
     ".gitattributes"      => Icons::GIT,            // 
     ".git-blame-ignore-revs" => Icons::GIT,         // 
     ".gitconfig"          => Icons::GIT,            // 
