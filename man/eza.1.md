@@ -334,7 +334,10 @@ For more information on the format of these environment variables, see the [eza_
 Overrides any `--git` or `--git-repos` argument
 
 ## `EZA_MIN_LUMINANCE`
-Specifies the minimum luminance to use when color-scale is active. It's value can be between -100 to 100.
+Specifies the minimum luminance to use when color-scale is active. Its value can be between -100 and 100.
+
+## `EZA_MAX_LUMINANCE`
+Specifies the maximum luminance to use when color-scale is active. Its value can be between -100 and 100.
 
 ## `EZA_ICONS_AUTO`
 

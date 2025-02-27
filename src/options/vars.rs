@@ -61,10 +61,15 @@ pub static EZA_ICON_SPACING: &str = "EZA_ICON_SPACING";
 pub static EXA_OVERRIDE_GIT: &str = "EXA_OVERRIDE_GIT";
 pub static EZA_OVERRIDE_GIT: &str = "EZA_OVERRIDE_GIT";
 
-/// Enviroment variable used to set the minimum luminance in `color_scale`. It's value
+/// Environment variable used to set the minimum luminance in `color_scale`. Its value
 /// can be between -100 and 100
 pub static EXA_MIN_LUMINANCE: &str = "EXA_MIN_LUMINANCE";
 pub static EZA_MIN_LUMINANCE: &str = "EZA_MIN_LUMINANCE";
+
+/// Environment variable used to set the maximum luminance in `color_scale`. Its value
+/// can be between -100 and 100
+pub static EXA_MAX_LUMINANCE: &str = "EXA_MAX_LUMINANCE";
+pub static EZA_MAX_LUMINANCE: &str = "EZA_MAX_LUMINANCE";
 
 /// Environment variable used to automate the same behavior as `--icons=auto` if set.
 /// Any explicit use of `--icons=WHEN` overrides this behavior.
@@ -115,7 +120,8 @@ pub struct MockVars {
     debug: OsString,
     grid_rows: OsString,
     icon_spacing: OsString,
-    luminance: OsString,
+    min_luminance: OsString,
+    max_luminance: OsString,
     icons: OsString,
 }
 
@@ -129,7 +135,8 @@ impl Vars for MockVars {
             "EXA_DEBUG" | "EZA_DEBUG" => Some(self.debug.clone()),
             "EXA_GRID_ROWS" | "EZA_GRID_ROWS" => Some(self.grid_rows.clone()),
             "EXA_ICON_SPACING" | "EZA_ICON_SPACING" => Some(self.icon_spacing.clone()),
-            "EXA_MIN_LUMINANCE" | "EZA_MIN_LUMINANCE" => Some(self.luminance.clone()),
+            "EXA_MIN_LUMINANCE" | "EZA_MIN_LUMINANCE" => Some(self.min_luminance.clone()),
+            "EXA_MAX_LUMINANCE" | "EZA_MAX_LUMINANCE" => Some(self.max_luminance.clone()),
             "EZA_ICONS_AUTO" => Some(self.icons.clone()),
             "COLUMNS" => Some(self.columns.clone()),
             "NO_COLOR" => Some(self.no_colors.clone()),
@@ -148,7 +155,8 @@ impl MockVars {
             "EXA_DEBUG" | "EZA_DEBUG" => self.debug = value.clone(),
             "EXA_GRID_ROWS" | "EZA_GRID_ROWS" => self.grid_rows = value.clone(),
             "EXA_ICON_SPACING" | "EZA_ICON_SPACING" => self.icon_spacing = value.clone(),
-            "EXA_MIN_LUMINANCE" | "EZA_MIN_LUMINANCE" => self.luminance = value.clone(),
+            "EXA_MIN_LUMINANCE" | "EZA_MIN_LUMINANCE" => self.min_luminance = value.clone(),
+            "EXA_MAX_LUMINANCE" | "EZA_MAX_LUMINANCE" => self.min_luminance = value.clone(),
             "EZA_ICONS_AUTO" => self.icons = value.clone(),
             "COLUMNS" => self.columns = value.clone(),
             "NO_COLOR" => self.no_colors = value.clone(),

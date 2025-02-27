@@ -17,6 +17,7 @@ use crate::{
 pub struct ColorScaleOptions {
     pub mode: ColorScaleMode,
     pub min_luminance: isize,
+    pub max_luminance: isize,
     pub size: bool,
     pub age: bool,
 }
@@ -26,6 +27,7 @@ impl Default for ColorScaleOptions {
         Self {
             mode: ColorScaleMode::Fixed,
             min_luminance: 50,
+            max_luminance: 100,
             size: false,
             age: false,
         }
@@ -96,6 +98,7 @@ impl ColorScaleInformation {
                 fg,
                 ratio,
                 self.options.min_luminance as f32 / 100.0,
+                self.options.max_luminance as f32 / 100.0,
             ));
         }
 
@@ -217,7 +220,7 @@ impl Extremes {
     }
 }
 
-fn adjust_luminance(color: Colour, x: f32, min_l: f32) -> Colour {
+fn adjust_luminance(color: Colour, x: f32, min_l: f32, max_l: f32) -> Colour {
     let rgb_color = match color {
         Colour::Rgb(r, g, b) => LinSrgb::new(
             f32::from(r) / 255.0,
@@ -251,7 +254,7 @@ fn adjust_luminance(color: Colour, x: f32, min_l: f32) -> Colour {
     };
 
     let mut lab: Oklab = Oklab::from_color(rgb_color);
-    lab.l = (min_l + (1.0 - min_l) * (-4.0 * (1.0 - x)).exp()).clamp(0.0, 1.0);
+    lab.l = (min_l + (max_l - min_l) * (-4.0 * (1.0 - x)).exp()).clamp(0.0, 1.0);
 
     let adjusted_rgb: Srgb<f32> = Srgb::from_color(lab);
     Colour::Rgb(

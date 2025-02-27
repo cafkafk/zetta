@@ -468,6 +468,14 @@ impl ColorScaleOptions {
                 },
                 None => 40,
             };
+        let max_luminance =
+            match vars.get_with_fallback(vars::EZA_MAX_LUMINANCE, vars::EXA_MAX_LUMINANCE) {
+                Some(var) => match var.to_string_lossy().parse() {
+                    Ok(luminance) if (-100..=100).contains(&luminance) => luminance,
+                    _ => 100,
+                },
+                None => 100,
+            };
 
         let mode = if let Some(w) = matches
             .get(&flags::COLOR_SCALE_MODE)?
@@ -488,6 +496,7 @@ impl ColorScaleOptions {
         let mut options = ColorScaleOptions {
             mode,
             min_luminance,
+            max_luminance,
             size: false,
             age: false,
         };
