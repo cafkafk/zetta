@@ -37,6 +37,7 @@ pub enum FileType {
 /// Mapping from full filenames to file type.
 const FILENAME_TYPES: Map<&'static str, FileType> = phf_map! {
     /* Immediate file - kick off the build of a project */
+    "Android.bp"         => FileType::Build,
     "Brewfile"           => FileType::Build,
     "bsconfig.json"      => FileType::Build,
     "BUILD"              => FileType::Build,
@@ -278,12 +279,16 @@ const EXTENSION_TYPES: Map<&'static str, FileType> = phf_map! {
     "tmp"        => FileType::Temp,
     /* Compiler output files */
     "a"          => FileType::Compiled, // Unix static library
+    "aab"        => FileType::Compiled, // Android App Bundle
+    "aar"        => FileType::Compiled, // Android Archive
+    "apk"        => FileType::Compiled, // Android PacKage
     "bundle"     => FileType::Compiled, // macOS application bundle
     "class"      => FileType::Compiled, // Java class file
     "cma"        => FileType::Compiled, // OCaml bytecode library
     "cmi"        => FileType::Compiled, // OCaml interface
     "cmo"        => FileType::Compiled, // OCaml bytecode object
     "cmx"        => FileType::Compiled, // OCaml bytecode object for inlining
+    "dex"        => FileType::Compiled, // Dalvik bytecode object, for Android apps
     "dll"        => FileType::Compiled, // Windows dynamic link library
     "dylib"      => FileType::Compiled, // Mach-O dynamic library
     "elc"        => FileType::Compiled, // Emacs compiled lisp
@@ -292,12 +297,14 @@ const EXTENSION_TYPES: Map<&'static str, FileType> = phf_map! {
     "lib"        => FileType::Compiled, // Windows static library
     "o"          => FileType::Compiled, // Compiled object file
     "obj"        => FileType::Compiled, // Compiled object file
+    "odex"       => FileType::Compiled, // Optimized DEX bytecode, for Android apps
     "pyc"        => FileType::Compiled, // Python compiled code
     "pyd"        => FileType::Compiled, // Python dynamic module
     "pyo"        => FileType::Compiled, // Python optimized code
     "so"         => FileType::Compiled, // Unix shared library
     "zwc"        => FileType::Compiled, // zsh compiled file
     /* Source code files */
+    "aidl"       => FileType::Source, // Android Interface Definition Language
     "applescript"=> FileType::Source, // Apple script
     "as"         => FileType::Source, // Action script
     "asa"        => FileType::Source, // asp
@@ -347,6 +354,7 @@ const EXTENSION_TYPES: Map<&'static str, FileType> = phf_map! {
     "h"          => FileType::Source, // C/C++ header
     "h++"        => FileType::Source, // C/C++ header
     "hh"         => FileType::Source, // C/C++ header
+    "hidl"       => FileType::Source, // Android Hardware Interface Definition
     "hpp"        => FileType::Source, // C/C++ header
     "hc"         => FileType::Source, // HolyC
     "hs"         => FileType::Source, // Haskell
@@ -408,6 +416,7 @@ const EXTENSION_TYPES: Map<&'static str, FileType> = phf_map! {
     "v"          => FileType::Source, // V
     "vb"         => FileType::Source, // Visual Basic
     "vsh"        => FileType::Source, // Vertex shader
+    "xml"        => FileType::Source, // eXtensible Markup Language
     "zig"        => FileType::Source, // Zig
 };
 
