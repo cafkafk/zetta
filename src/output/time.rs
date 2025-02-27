@@ -196,4 +196,34 @@ mod test {
             .all(|string| UnicodeWidthStr::width(string.as_str()) == max_month_width)
         );
     }
+
+    #[test]
+    fn display_timestamp_correctly_in_timezone_with_dst() {
+        let timezone_str = "Europe/Berlin";
+        let timezone: chrono_tz::Tz = timezone_str.parse().unwrap();
+        let time = DateTime::<Utc>::from_timestamp(1685867700, 0)
+            .unwrap()
+            .naive_utc();
+
+        let fixed_offset = timezone.offset_from_utc_datetime(&time).fix();
+        let real_converted = DateTime::<FixedOffset>::from_naive_utc_and_offset(time, fixed_offset);
+        let formatted = full(&real_converted);
+        let expected = "2023-06-04 10:35:00.000000000 +0200";
+        assert_eq!(expected, formatted);
+    }
+
+    #[test]
+    fn display_timestamp_correctly_in_timezone_without_dst() {
+        let timezone_str = "Europe/Berlin";
+        let timezone: chrono_tz::Tz = timezone_str.parse().unwrap();
+        let time = DateTime::<Utc>::from_timestamp(1699090500, 0)
+            .unwrap()
+            .naive_utc();
+
+        let fixed_offset = timezone.offset_from_utc_datetime(&time).fix();
+        let real_converted = DateTime::<FixedOffset>::from_naive_utc_and_offset(time, fixed_offset);
+        let formatted = full(&real_converted);
+        let expected = "2023-11-04 10:35:00.000000000 +0100";
+        assert_eq!(expected, formatted);
+    }
 }

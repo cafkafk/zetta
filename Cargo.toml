@@ -86,6 +86,8 @@ name = "eza"
 [dependencies]
 rayon = "1.10.0"
 chrono = { version = "0.4.34", default-features = false, features = ["clock"] }
+chrono-tz = "0.10.0"
+iana-time-zone = "0.1.58"
 nu-ansi-term = { version = "0.50.1", features = [
   "serde",
   "derive_serde_style",

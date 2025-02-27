@@ -399,7 +399,7 @@ pub struct MatchedFlags<'args> {
     strictness: Strictness,
 }
 
-impl<'a> MatchedFlags<'a> {
+impl MatchedFlags<'_> {
     /// Whether the given argument was specified.
     /// Returns `true` if it was, `false` if it wasn’t, and an error in
     /// strict mode if it was specified more than once.
@@ -554,14 +554,14 @@ impl fmt::Display for ParseError {
 fn os_str_to_bytes(s: &OsStr) -> &[u8] {
     use std::os::unix::ffi::OsStrExt;
 
-    return s.as_bytes();
+    s.as_bytes()
 }
 
 #[cfg(unix)]
 fn bytes_to_os_str(b: &[u8]) -> &OsStr {
     use std::os::unix::ffi::OsStrExt;
 
-    return OsStr::from_bytes(b);
+    OsStr::from_bytes(b)
 }
 
 #[cfg(windows)]
