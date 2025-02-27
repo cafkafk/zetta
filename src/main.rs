@@ -36,7 +36,7 @@ use std::process::exit;
 use nu_ansi_term::{AnsiStrings as ANSIStrings, Style};
 
 use crate::fs::feature::git::GitCache;
-use crate::fs::filter::{FileFilterFlags::OnlyFiles, GitIgnore};
+use crate::fs::filter::GitIgnore;
 use crate::fs::{Dir, File};
 use crate::options::stdin::FilesInput;
 use crate::options::{vars, Options, OptionsResult, Vars};
@@ -395,17 +395,9 @@ impl<'args> Exa<'args> {
     }
 
     /// Prints the list of files using whichever view is selected.
-    fn print_files(&mut self, dir: Option<&Dir>, mut files: Vec<File<'_>>) -> io::Result<()> {
+    fn print_files(&mut self, dir: Option<&Dir>, files: Vec<File<'_>>) -> io::Result<()> {
         if files.is_empty() {
             return Ok(());
-        }
-        let recursing = self.options.dir_action.recurse_options().is_some();
-        let only_files = self.options.filter.flags.contains(&OnlyFiles);
-        if recursing && only_files {
-            files = files
-                .into_iter()
-                .filter(|f| !f.is_directory())
-                .collect::<Vec<_>>();
         }
         let theme = &self.theme;
         let View {
