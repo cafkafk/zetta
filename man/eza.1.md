@@ -153,6 +153,9 @@ Sort fields starting with a capital letter will sort uppercase before lowercase:
 `--git-ignore` [if eza was built with git support]
 : Do not list files that are ignored by Git.
 
+`--ignore-submodule-contents` [if eza was built with git support]
+: Do not list contents of submodules.
+
 `--group-directories-first`
 : List directories before other files.
 

@@ -39,6 +39,7 @@ impl FileFilter {
             no_symlinks:      filter_flags.contains(&FFF::NoSymlinks),
             show_symlinks:    filter_flags.contains(&FFF::ShowSymlinks),
             flags:            filter_flags,
+            ignore_submodule_contents: matches.has(&flags::IGNORE_SUBMODULE_CONTENTS)?,
             sort_field:       SortField::deduce(matches)?,
             dot_filter:       DotFilter::deduce(matches)?,
             ignore_patterns:  IgnorePatterns::deduce(matches)?,

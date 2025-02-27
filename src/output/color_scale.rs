@@ -57,6 +57,7 @@ impl ColorScaleInformation {
         dot_filter: DotFilter,
         git: Option<&GitCache>,
         git_ignoring: bool,
+        ignoring_submodule_contents: bool,
         r: Option<RecurseOptions>,
     ) -> Option<Self> {
         if color_scale.mode == ColorScaleMode::Fixed {
@@ -77,6 +78,7 @@ impl ColorScaleInformation {
                 dot_filter,
                 git,
                 git_ignoring,
+                ignoring_submodule_contents,
                 TreeDepth::root(),
                 r,
             );
@@ -118,12 +120,14 @@ impl ColorScaleInformation {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn update_information_recursively(
     information: &mut ColorScaleInformation,
     files: &[File<'_>],
     dot_filter: DotFilter,
     git: Option<&GitCache>,
     git_ignoring: bool,
+    ignoring_submodule_contents: bool,
     depth: TreeDepth,
     r: Option<RecurseOptions>,
 ) {
@@ -168,6 +172,15 @@ fn update_information_recursively(
         {
             match file.to_dir() {
                 Ok(dir) => {
+                    if ignoring_submodule_contents
+                        && git
+                            .as_ref()
+                            .map(|g| g.has_in_submodule(&file.path))
+                            .unwrap_or(false)
+                    {
+                        continue;
+                    }
+
                     let files: Vec<File<'_>> = dir
                         .files(dot_filter, git, git_ignoring, false, false)
                         .collect();
@@ -178,6 +191,7 @@ fn update_information_recursively(
                         dot_filter,
                         git,
                         git_ignoring,
+                        ignoring_submodule_contents,
                         depth.deeper(),
                         r,
                     );

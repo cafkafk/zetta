@@ -1,0 +1,2 @@
+bin.name = "eza"
+args = "tests/test_dir/git/with_submodule_symlink -R --ignore-submodule-contents"

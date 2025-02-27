@@ -19,6 +19,7 @@ tests/test_dir/git:
 008
 009
 010
+with_submodule
 
 tests/test_dir/git/001:
 
@@ -39,6 +40,11 @@ tests/test_dir/git/008:
 tests/test_dir/git/009:
 
 tests/test_dir/git/010:
+
+tests/test_dir/git/with_submodule:
+001
+
+tests/test_dir/git/with_submodule/001:
 
 tests/test_dir/grid:
 0001

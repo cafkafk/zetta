@@ -46,6 +46,7 @@ pub static REVERSE:     Arg = Arg { short: Some(b'r'), long: "reverse",     take
 pub static SORT:        Arg = Arg { short: Some(b's'), long: "sort",        takes_value: TakesValue::Necessary(Some(SORTS)) };
 pub static IGNORE_GLOB: Arg = Arg { short: Some(b'I'), long: "ignore-glob", takes_value: TakesValue::Necessary(None) };
 pub static GIT_IGNORE:  Arg = Arg { short: None, long: "git-ignore",           takes_value: TakesValue::Forbidden };
+pub static IGNORE_SUBMODULE_CONTENTS: Arg = Arg { short: None, long: "ignore-submodule-contents", takes_value: TakesValue::Forbidden };
 pub static DIRS_FIRST:  Arg = Arg { short: None, long: "group-directories-first",  takes_value: TakesValue::Forbidden };
 pub static DIRS_LAST:   Arg = Arg { short: None, long: "group-directories-last",  takes_value: TakesValue::Forbidden };
 pub static ONLY_DIRS:   Arg = Arg { short: Some(b'D'), long: "only-dirs", takes_value: TakesValue::Forbidden };
@@ -104,12 +105,12 @@ pub static ALL_ARGS: Args = Args(&[
     &WIDTH, &NO_QUOTES, &ABSOLUTE,
 
     &ALL, &ALMOST_ALL, &LIST_DIRS, &LEVEL, &REVERSE, &SORT, &DIRS_FIRST, &DIRS_LAST,
-    &IGNORE_GLOB, &GIT_IGNORE, &ONLY_DIRS, &ONLY_FILES,
+    &IGNORE_GLOB, &GIT_IGNORE, &IGNORE_SUBMODULE_CONTENTS, &ONLY_DIRS, &ONLY_FILES,
 
     &BINARY, &BYTES, &GROUP, &NUMERIC, &HEADER, &ICONS, &INODE, &LINKS, &MODIFIED, &CHANGED,
     &BLOCKSIZE, &TOTAL_SIZE, &TIME, &ACCESSED, &CREATED, &TIME_STYLE, &HYPERLINK, &MOUNTS,
     &NO_PERMISSIONS, &NO_FILESIZE, &NO_USER, &NO_TIME, &SMART_GROUP, &NO_SYMLINKS, &SHOW_SYMLINKS,
 
     &GIT, &NO_GIT, &GIT_REPOS, &GIT_REPOS_NO_STAT,
-    &EXTENDED, &OCTAL, &SECURITY_CONTEXT, &STDIN, &FILE_FLAGS
+    &EXTENDED, &OCTAL, &SECURITY_CONTEXT, &STDIN, &FILE_FLAGS,
 ]);

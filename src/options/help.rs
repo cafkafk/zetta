@@ -54,7 +54,8 @@ FILTERING AND SORTING OPTIONS
   -I, --ignore-glob GLOBS    glob patterns (pipe-separated) of files to ignore";
 
 static GIT_FILTER_HELP: &str = "  \
-  --git-ignore               ignore files mentioned in '.gitignore'";
+  --git-ignore                 ignore files mentioned in '.gitignore
+  --ignore-submodule-contents  do not list contents of submodules";
 
 static USAGE_PART2: &str = "  \
   Valid sort fields:         name, Name, extension, Extension, size, type,
@@ -99,9 +100,9 @@ static GIT_VIEW_HELP: &str = "  \
   --git-repos-no-status      list each git-repos branch name (much faster)
     ";
 static EXTENDED_HELP: &str = "  \
-  -@, --extended             list each file's extended attributes and sizes";
+  -@, --extended               list each file's extended attributes and sizes";
 static SECATTR_HELP: &str = "  \
-  -Z, --context              list each file's security context";
+  -Z, --context                list each file's security context";
 
 /// All the information needed to display the help text, which depends
 /// on which features are enabled and whether the user only wants to

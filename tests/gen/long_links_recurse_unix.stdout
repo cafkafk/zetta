@@ -1,4 +1,4 @@
-  12 git
+  13 git
 1002 grid
    2 group
    2 icons
@@ -19,6 +19,8 @@ tests/test_dir/git:
 3 008
 3 009
 3 010
+4 with_submodule
+1 with_submodule_symlink -> with_submodule
 
 tests/test_dir/git/001:
 1 file_000
@@ -139,6 +141,22 @@ tests/test_dir/git/010:
 1 file_007
 1 file_008
 1 file_009
+
+tests/test_dir/git/with_submodule:
+2 001
+1 file_000
+1 file_001
+1 file_002
+1 file_003
+1 file_004
+1 file_005
+1 file_006
+1 file_007
+1 file_008
+1 file_009
+
+tests/test_dir/git/with_submodule/001:
+1 file_001
 
 tests/test_dir/grid:
 2 0001

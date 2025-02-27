@@ -99,17 +99,30 @@ tests/test_dir
 │   │   ├── file_007
 │   │   ├── file_008
 │   │   └── file_009
-│   └── 010
-│       ├── file_000
-│       ├── file_001
-│       ├── file_002
-│       ├── file_003
-│       ├── file_004
-│       ├── file_005
-│       ├── file_006
-│       ├── file_007
-│       ├── file_008
-│       └── file_009
+│   ├── 010
+│   │   ├── file_001
+│   │   ├── file_000
+│   │   ├── file_002
+│   │   ├── file_003
+│   │   ├── file_004
+│   │   ├── file_005
+│   │   ├── file_006
+│   │   ├── file_007
+│   │   ├── file_008
+│   │   └── file_009
+│   ├── with_submodule
+│   │   ├── 001
+│   │   ├── file_000
+│   │   ├── file_001
+│   │   ├── file_002
+│   │   ├── file_003
+│   │   ├── file_004
+│   │   ├── file_005
+│   │   ├── file_006
+│   │   ├── file_007
+│   │   ├── file_008
+│   │   └── file_009
+│   └── with_submodule_symlink -> with_submodule
 ├── grid
 │   ├── 0001
 │   ├── 0002

@@ -9,7 +9,9 @@ tests/test_dir
 │   ├── 007
 │   ├── 008
 │   ├── 009
-│   └── 010
+│   ├── 010
+│   ├── with_submodule
+│   └── with_submodule_symlink -> with_submodule
 ├── grid
 │   ├── 0001
 │   ├── 0002

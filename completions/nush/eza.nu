@@ -23,6 +23,7 @@ export extern "eza" [
     --group-directories-first  # Sort directories before other files
     --group-directories-last   # Sort directories after other files
     --git-ignore               # Ignore files mentioned in '.gitignore'
+    --ignore-submodule-contents # Do not list contents of submodules
     --all(-a)                  # Show hidden and 'dot' files. Use this twice to also show the '.' and '..' directories
     --almost-all(-A)           # Equivalent to --all; included for compatibility with `ls -A`
     --list-dirs(-d)            # List directories like regular files

@@ -1,0 +1,13 @@
+drwxr-xr-x - nixbld  1 Jan  1970 001
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_000
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_001
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_002
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_003
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_004
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_005
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_006
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_007
+.rw-r--r-- 2 nixbld  1 Jan  1970 file_008
+.rw-r--r-- 3 nixbld  1 Jan  1970 file_009
+
+tests/test_dir/git/with_submodule/001:

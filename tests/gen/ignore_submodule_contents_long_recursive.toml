@@ -1,0 +1,2 @@
+bin.name = "eza"
+args = "tests/test_dir/git/with_submodule -R --long --ignore-submodule-contents"

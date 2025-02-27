@@ -90,6 +90,9 @@ pub struct FileFilter {
 
     /// Whether to explicitly show symlinks
     pub show_symlinks: bool,
+
+    /// Whether to ignore submodule contents when listing recursively.
+    pub ignore_submodule_contents: bool,
 }
 
 impl FileFilter {

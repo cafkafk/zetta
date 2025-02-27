@@ -50,6 +50,7 @@ complete -c eza -l smart-group -d "Only show group if it has a different name fr
 complete -c eza -l group-directories-first -d "Sort directories before other files"
 complete -c eza -l group-directories-last -d "Sort directories after other files"
 complete -c eza -l git-ignore -d "Ignore files mentioned in '.gitignore'"
+complete -c eza -l ignore-submodule-contents -d "Do not list contents of submodules"
 complete -c eza -s a -l all -d "Show hidden and 'dot' files. Use this twice to also show the '.' and '..' directories"
 complete -c eza -s A -l almost-all -d "Equivalent to --all; included for compatibility with `ls -A`"
 complete -c eza -s d -l list-dirs -d "List directories like regular files"
