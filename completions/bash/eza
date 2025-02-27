@@ -24,7 +24,7 @@ _eza() {
             ;;
 
         -s|--sort)
-            mapfile -t COMPREPLY < <(compgen -W 'name filename Name Filename size filesize extension Extension date time modified changed accessed created type inode oldest newest age none --' -- "$cur")
+            mapfile -t COMPREPLY < <(compgen -W 'name filename Name Filename size filesize blocks extension Extension date time modified changed accessed created type inode oldest newest age none --' -- "$cur")
             return
             ;;
 

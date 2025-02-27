@@ -68,6 +68,8 @@ impl SortField {
             ".name" | ".filename" => Self::NameMixHidden(SortCase::AaBbCc),
             ".Name" | ".Filename" => Self::NameMixHidden(SortCase::ABCabc),
             "size" | "filesize" => Self::Size,
+            #[cfg(unix)]
+            "block" | "blocks" | "blocksize" => Self::BlockSize,
             "ext" | "extension" => Self::Extension(SortCase::AaBbCc),
             "Ext" | "Extension" => Self::Extension(SortCase::ABCabc),
 

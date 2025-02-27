@@ -76,6 +76,7 @@ complete -c eza -s s -l sort -d "Which field to sort by" -x -a "
     none\t'Do not sort files at all'
     oldest\t'Sort by file modified time'
     size\t'Sort by file size'
+    blocks\t'Sort by blocks number'
     time\t'Sort by file modified time'
     type\t'Sort by file type'
 "

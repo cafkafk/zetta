@@ -154,6 +154,16 @@ pub enum Blocksize {
     None,
 }
 
+#[cfg(unix)]
+impl Blocksize {
+    pub fn bytes(self) -> u64 {
+        match self {
+            Blocksize::Some(n) => n,
+            Blocksize::None => 0,
+        }
+    }
+}
+
 /// The ID of the user that owns a file. This will only ever be a number;
 /// looking up the username is done in the `display` module.
 #[allow(unused)]
