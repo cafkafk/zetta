@@ -2,6 +2,7 @@
 [CWD]/tests/itest/b
 [CWD]/tests/itest/c
 [CWD]/tests/itest/d
+[CWD]/tests/itest/dereferenced-sort-size
 [CWD]/tests/itest/dir-symlink -> vagrant/debug
 [CWD]/tests/itest/e
 [CWD]/tests/itest/exa

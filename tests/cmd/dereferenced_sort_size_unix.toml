@@ -1,0 +1,2 @@
+bin.name = "eza"
+args = "tests/itest/dereferenced-sort-size/links -1 --sort=size --dereference"

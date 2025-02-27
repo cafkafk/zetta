@@ -2,6 +2,7 @@
 [CWD]/tests/itest/b
 [CWD]/tests/itest/c
 [CWD]/tests/itest/d
+[CWD]/tests/itest/dereferenced-sort-size
 [CWD]/tests/itest/dir-symlink -> vagrant/debug
 [CWD]/tests/itest/e
 [CWD]/tests/itest/exa
@@ -20,6 +21,15 @@
 [CWD]/tests/itest/p
 [CWD]/tests/itest/q
 [CWD]/tests/itest/vagrant
+
+tests/itest/dereferenced-sort-size:
+[CWD]/tests/itest/dereferenced-sort-size/links
+[CWD]/tests/itest/dereferenced-sort-size/longgggggggggggggg-name-smaller-size
+[CWD]/tests/itest/dereferenced-sort-size/short-name-larger-size
+
+tests/itest/dereferenced-sort-size/links:
+[CWD]/tests/itest/dereferenced-sort-size/links/a -> ../longgggggggggggggg-name-smaller-size
+[CWD]/tests/itest/dereferenced-sort-size/links/b -> ../short-name-larger-size
 
 tests/itest/exa:
 [CWD]/tests/itest/exa/file.c -> djihisudjuhfius
